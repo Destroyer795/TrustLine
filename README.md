@@ -4,18 +4,25 @@
 
 # TrustLine
 
-*Your agent's credit line. Cryptographic. Bounded. Principal-bound.*
+*Autonomous credit infrastructure. Automatic. Instant. Zero paperwork.*
 
 <br/>
-<img src="docs/screenshots/desktop-contact-sheet.png" width="600" />
+<img src="docs/screenshots/trustline-logo.png" width="220" alt="TrustLine Brand Logo" style="border-radius: 12px;" />
 <br/><br/>
 
 ![](https://img.shields.io/badge/REACT-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![](https://img.shields.io/badge/TYPESCRIPT-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![](https://img.shields.io/badge/VITE-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![](https://img.shields.io/badge/TAILWIND_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![](https://img.shields.io/badge/PYTHON-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![](https://img.shields.io/badge/DJANGO-092E20?style=for-the-badge&logo=django&logoColor=white)
+<br/>
 ![](https://img.shields.io/badge/POSTGRESQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
 ![](https://img.shields.io/badge/DOCKER-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![](https://img.shields.io/badge/ED25519_CRYPTO-000000?style=for-the-badge&logo=json-web-tokens&logoColor=white)
+![](https://img.shields.io/badge/NUMPY-013243?style=for-the-badge&logo=numpy&logoColor=white)
+![](https://img.shields.io/badge/PYTEST-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)
+![](https://img.shields.io/badge/GEMINI_AI-8E75B2?style=for-the-badge&logo=google-gemini&logoColor=white)
 
 <h3><a href="#">Demo Video</a> | <a href="#">Pitch Deck</a></h3>
 
