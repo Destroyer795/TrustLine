@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ShieldCheck, ShieldAlert, Menu, X, RefreshCw } from 'lucide-react';
 import { api } from '../services/api';
+import { LogoMark } from './Logo';
 import { cn } from '../lib/cn';
 
 const navItems = [
@@ -55,15 +56,17 @@ export const Navbar: React.FC = () => {
   return (
     <header className="bg-surface border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
-        {/* Wordmark */}
-        <Link to="/" className="flex items-center gap-3 text-ink shrink-0 group">
-          <div className="h-9 w-9 rounded-[2px] bg-teal flex items-center justify-center text-surface font-display font-semibold text-xl leading-none transition-colors group-hover:bg-teal-dark">
-            T
-          </div>
-          <div>
-            <span className="block font-display font-semibold text-lg tracking-tight text-ink leading-none">TrustLine</span>
-            <span className="block mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-ink">Agent Credit Infrastructure</span>
-          </div>
+        {/* Wordmark — bridge mark + tagline */}
+        <Link
+          to="/"
+          aria-label="TrustLine — credit, extended to machines"
+          className="flex items-center gap-3 text-ink shrink-0 group"
+        >
+          <LogoMark className="h-9 w-9 text-teal transition-colors group-hover:text-teal-dark" />
+          <span className="flex flex-col leading-none">
+            <span className="font-display font-semibold text-lg tracking-tight leading-none">TrustLine</span>
+            <span className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-ink">Credit, extended to machines.</span>
+          </span>
         </Link>
 
         {/* Desktop nav */}

@@ -53,7 +53,7 @@ export const Overview: React.FC = () => {
           <div className="p-8 md:p-12 animate-rise">
             <p className="flex items-center gap-3">
               <span aria-hidden="true" className="h-px w-10 bg-accent" />
-              <span className="kicker text-muted-ink">FinTech Hackathon Solution</span>
+              <span className="kicker text-muted-ink">Credit, extended to machines.</span>
             </p>
             <h1 className="mt-6 font-display text-4xl md:text-5xl font-semibold tracking-tight leading-[1.05] text-ink">
               TrustLine
@@ -62,7 +62,10 @@ export const Overview: React.FC = () => {
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-base md:text-lg text-muted-ink leading-relaxed">
-              How can temporary working capital be extended to an AI agent when the agent itself lacks legal identity, collateral, and contractual accountability?
+              An AI agent has no legal identity, no collateral, no contract — so banks can't underwrite one.
+              TrustLine extends credit to machines anyway: a principal signs an Ed25519 capability mandate, and
+              the agent draws against a limit that climbs only as verified work earns it — and collapses the
+              moment trust breaks. This console is the story: trust being earned, lost, and audited in real time.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <Link
