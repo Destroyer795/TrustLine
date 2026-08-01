@@ -27,7 +27,9 @@ urlpatterns = [
     # Risk & Credit
     path('api/v1/agents/<uuid:pk>/risk-profile', api_views.agent_risk_profile),
     path('api/v1/agents/<uuid:pk>/risk/recalculate', api_views.agent_recalculate_risk),
-    
+    path('api/v1/agents/<uuid:pk>/limit-history', api_views.agent_limit_history),
+    path('api/v1/agents/<uuid:pk>/receipts', api_views.agent_receipts),
+
     # Draws & Gateway
     path('api/v1/draws', api_views.draws_create),
     path('api/v1/draws/<uuid:pk>/advance', api_views.draw_advance),
