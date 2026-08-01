@@ -44,18 +44,24 @@
 
 **TrustLine** is an autonomous credit infrastructure engineered for AI agents. Autonomous AI agents lack legal identity, bank accounts, collateral, and contractual standing. TrustLine solves this fundamental challenge by acting as a cryptographic, risk-underwritten gateway that extends temporary, bounded credit lines directly to AI agents under principal-bound mandates.
 
+```mermaid
+flowchart LR
+    A["👤 Human Principal<br/><i>(Accountable Entity)</i>"] -->|Ed25519 Capability Mandate| B["🤖 Autonomous AI Agent<br/><i>(Bounded Execution)</i>"]
+    B -->|AHP Underwritten Spend Request| C["⚡ TrustLine Gateway<br/><i>(SELECT FOR UPDATE Row Lock)</i>"]
+    C -->|Hash-Chain Event Log| D["📜 SHA-256 Audit Ledger<br/><i>(& Bank Repayment Adapter)</i>"]
+
+    style A fill:#1A1D24,stroke:#30363D,color:#E6EDF3
+    style B fill:#1A1D24,stroke:#30363D,color:#E6EDF3
+    style C fill:#900C3F,stroke:#D03050,color:#FFFFFF
+    style D fill:#1A1D24,stroke:#30363D,color:#E6EDF3
 ```
-+------------------+      Ed25519 Mandate     +----------------------+      AHP Underwrite      +------------------------+
-| Human Principal  |  -------------------->  | Autonomous AI Agent  |  -------------------->  | TrustLine Gateway      |
-| (Accountable)    |                         | (Bounded Execution)  |                         | (PostgreSQL Row Lock)  |
-+------------------+                         +----------------------+                         +------------------------+
-                                                                                                          |
-                                                                                                          v
-                                                                                              +------------------------+
-                                                                                              | SHA-256 Audit Ledger   |
-                                                                                              | & Bank Repayment Pull  |
-                                                                                              +------------------------+
-```
+
+| Stage | Subsystem / Actor | Operation & Security Boundary | Target Output |
+|:---:|:---|:---|:---|
+| **1. Identity** | **Human Principal** | Issues Ed25519-signed Capability Mandate with explicit ceiling caps | Accountable Mandate Proof |
+| **2. Request** | **Autonomous Agent** | Submits spend request outside LLM context to isolated gateway | Signed Draw Request |
+| **3. Gateway** | **TrustLine Core** | Evaluates AHP underwriting matrix & enforces PostgreSQL `SELECT FOR UPDATE` | Reserved Credit Line |
+| **4. Settlement** | **Audit & Bank Pull** | Appends SHA-256 hash-chain event & executes scheduled mandate debit | Tamper-Evident Ledger Log |
 
 [![Build & Test](https://img.shields.io/badge/pytest-passing-brightgreen.svg)](docs/execution-status.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-0%20errors-blue.svg)](docs/execution-status.md)
