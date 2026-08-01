@@ -1,4 +1,4 @@
-export type AgentStatus = 'NORMAL' | 'RESTRICTED' | 'FROZEN' | 'HUMAN_REVIEW';
+export type AgentStatus = "NORMAL" | "RESTRICTED" | "FROZEN" | "HUMAN_REVIEW";
 
 export interface Principal {
   id: string;
@@ -52,7 +52,7 @@ export interface Agent {
 }
 
 export interface RiskEvidence {
-  component: 'IDENTITY' | 'TASK' | 'REPAYMENT' | 'SPENDING' | 'EXPOSURE';
+  component: "IDENTITY" | "TASK" | "REPAYMENT" | "SPENDING" | "EXPOSURE";
   score: string;
   evidence_count: number;
   source: string;
@@ -115,4 +115,150 @@ export interface AuditEvent {
   current_hash: string;
   created_at: string;
   payload: any;
+}
+
+export interface DemoScenario {
+  key: string;
+  title: string;
+  agent_name: string;
+  lesson: string;
+  step_count: number;
+  agent?: {
+    id: string;
+    name: string;
+    purpose: string;
+    authority: AgentStatus;
+    limit: string;
+    available: string;
+  };
+}
+export interface DemoStep {
+  sequence: number;
+  actor: string;
+  action: string;
+  endpoint: string;
+  transport_status: number;
+  semantic_result: string;
+  plain_language: string;
+  proof: string;
+  request: Record<string, unknown>;
+  response: Record<string, any>;
+  before: Record<string, string>;
+  after: Record<string, string>;
+  gateway_checks: string[];
+  audit_sequence?: number;
+  created_at: string;
+}
+export interface DemoSession {
+  id: string;
+  scenario_key: string;
+  title: string;
+  lesson: string;
+  status: string;
+  current_step: number;
+  total_steps: number;
+  initial_state: Record<string, string>;
+  current_state: Record<string, string>;
+  steps: DemoStep[];
+}
+export interface PortfolioAnalytics {
+  seeded_demo: boolean;
+  as_of: string;
+  summary: {
+    authorized_capital: string;
+    current_limits: string;
+    available_credit: string;
+    reserved_exposure: string;
+    outstanding_principal: string;
+    utilization_pct: string;
+  };
+  authority_states: { state: string; count: number }[];
+  exposure_by_bot: {
+    agent_id: string;
+    agent_name: string;
+    principal_name: string;
+    authority: string;
+    limit: string;
+    available: string;
+    reserved: string;
+    outstanding: string;
+    utilization_pct: string;
+  }[];
+  merchant_categories: { category: string; amount: string; count: number }[];
+  recent_events: {
+    sequence: number;
+    type: string;
+    entity: string;
+    created_at: string;
+  }[];
+}
+export interface AgentAnalytics {
+  seeded_demo: boolean;
+  agent_id: string;
+  agent_name: string;
+  principal_name: string;
+  window: string;
+  as_of: string;
+  summary: {
+    authority: string;
+    limit: string;
+    available: string;
+    reserved: string;
+    outstanding: string;
+    floor: string;
+    ceiling: string;
+  };
+  risk_history: {
+    at: string;
+    score: string;
+    identity: string;
+    task: string;
+    repayment: string;
+    spending: string;
+    exposure_utilization: string;
+  }[];
+  limit_history: {
+    at: string;
+    previous: string;
+    target: string;
+    limit: string;
+    trigger: string;
+  }[];
+  exposure_history: {
+    at: string;
+    balance: string;
+    amount: string;
+    type: string;
+  }[];
+  merchant_categories: { category: string; amount: string; count: number }[];
+  draw_outcomes: { status: string; count: number; amount: string }[];
+  repayment_outcomes: { status: string; count: number; amount: string }[];
+  authority_transitions: {
+    at: string;
+    from: string;
+    to: string;
+    trigger: string;
+    reason: string;
+  }[];
+  transactions: {
+    id: string;
+    at: string;
+    merchant: string;
+    category: string;
+    amount: string;
+    status: string;
+    reason: string;
+  }[];
+}
+export interface SimulationResult {
+  decision: string;
+  code: string;
+  checks: { name: string; passed: boolean; detail: string }[];
+  projected: {
+    authority?: string;
+    available_after_reservation?: string;
+    outstanding_after_settlement?: string;
+    limit_effect?: string;
+  };
+  mutated: false;
 }

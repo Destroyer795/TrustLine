@@ -1,2 +1,209 @@
-import React,{useEffect,useState}from'react';import{ArrowsClockwise,CaretDown,CheckCircle,ShieldWarning}from'@phosphor-icons/react';import{api}from'../services/api';import{AuditEvent}from'../types';import{ConfirmAction,DoubleBezel,EmptyState,HashValue,InlineError,PageHeader,SkeletonBlock}from'../components/ui';
-export const AuditLog=()=>{const[events,setEvents]=useState<AuditEvent[]>([]);const[status,setStatus]=useState<any>(null);const[loading,setLoading]=useState(true);const[error,setError]=useState('');const[confirm,setConfirm]=useState(false);const[open,setOpen]=useState<number|null>(null);const load=async()=>{try{setLoading(true);setError('');const[e,s]=await Promise.all([api.getAuditEvents(),api.verifyAuditChain()]);setEvents(e);setStatus(s)}catch(e:any){setError(e.message)}finally{setLoading(false)}};useEffect(()=>{load()},[]);const tamper=async()=>{try{await api.tamperAuditLog();setConfirm(false);await load()}catch(e:any){setError(e.message)}};const valid=status?.status==='VALID';return <div className="space-y-14"><PageHeader label="Tamper-evident evidence" title="Audit ledger" body="Every financial and authority event includes the previous entry hash, making silent historical edits detectable." actions={<><button onClick={()=>setConfirm(true)} className="btn-secondary text-warning">Simulate tamper</button><button onClick={load} className="btn-primary"><ArrowsClockwise/>Verify chain</button></>}/>{error&&<InlineError message={error} onRetry={load}/>}<DoubleBezel innerClassName={`overflow-hidden ${valid?'':'bg-danger-light'}`}><div className={`grid gap-6 p-7 md:grid-cols-[1fr_auto] md:items-center md:p-10 ${valid?'bg-teal text-surface':'text-danger'}`}><div className="flex items-start gap-5">{valid?<CheckCircle size={42} weight="light"/>:<ShieldWarning size={42} weight="light"/>}<div><p className={`font-mono text-[10px] uppercase tracking-[.17em] ${valid?'text-surface/60':'text-danger/65'}`}>Chain integrity</p><h2 className="mt-2 text-4xl font-semibold">{valid?'Valid and verified':'Corruption detected'}</h2><p className={`mt-2 text-sm ${valid?'text-surface/70':'text-danger/80'}`}>{valid?`${status?.total_events??events.length} events preserve sequence integrity.`:`Event ${status?.corrupted_sequence||'unknown'} no longer matches its recorded hash.`}</p></div></div><div className="md:text-right"><p className={`font-mono text-[9px] uppercase tracking-[.16em] ${valid?'text-surface/55':'text-danger/60'}`}>Last verified</p><p className="mt-1 font-mono text-sm">{new Date().toLocaleTimeString()}</p></div></div><div className="grid gap-5 p-6 md:grid-cols-2"><div><p className="eyebrow">Chain head</p><div className="mt-3"><HashValue value={events[0]?.current_hash||'No events'}/></div></div><div><p className="eyebrow">Previous link</p><div className="mt-3"><HashValue value={events[0]?.previous_hash||'Genesis block'}/></div></div></div></DoubleBezel><section>{loading?<div className="grid gap-3"><SkeletonBlock className="h-20"/><SkeletonBlock className="h-20"/></div>:events.length===0?<EmptyState title="Ledger is empty" body="Run a demo scenario to append the first verifiable financial event."/>:<div className="grid gap-3">{events.map(ev=><article key={ev.sequence} className="overflow-hidden rounded-[1.3rem] bg-surface ring-1 ring-ink/[0.06]"><button onClick={()=>setOpen(open===ev.sequence?null:ev.sequence)} className="grid min-h-20 w-full grid-cols-[auto_1fr_auto] items-center gap-4 px-5 text-left"><span className="metric text-sm font-semibold">#{ev.sequence}</span><span><strong className="block text-sm">{ev.event_type}</strong><small className="mt-1 block text-muted-ink">{new Date(ev.created_at).toLocaleString()} | {ev.actor}</small></span><CaretDown className={open===ev.sequence?'rotate-180':''}/></button>{open===ev.sequence&&<div className="grid gap-5 border-t border-ink/10 bg-canvas p-5 md:grid-cols-2"><div><p className="eyebrow">Current hash</p><HashValue value={ev.current_hash}/></div><div><p className="eyebrow">Previous hash</p><HashValue value={ev.previous_hash}/></div><pre className="overflow-x-auto rounded-xl bg-ink p-4 text-[10px] text-canvas md:col-span-2">{JSON.stringify(ev.payload,null,2)}</pre></div>}</article>)}</div>}</section><ConfirmAction open={confirm} title="Modify a historical event?" body="This intentional demonstration changes one stored payload. The hash-chain verifier will detect the exact corrupted sequence, and the state will remain corrupted until demo reset." confirmLabel="Simulate tamper" onConfirm={tamper} onClose={()=>setConfirm(false)}/></div>};
+import React, { useEffect, useState } from "react";
+import {
+  ArrowsClockwise,
+  CaretDown,
+  CheckCircle,
+  ShieldWarning,
+} from "@phosphor-icons/react";
+import { api } from "../services/api";
+import { Link } from "react-router-dom";
+import { AuditEvent } from "../types";
+import {
+  ConfirmAction,
+  DoubleBezel,
+  EmptyState,
+  HashValue,
+  InlineError,
+  PageHeader,
+  SkeletonBlock,
+} from "../components/ui";
+export const AuditLog = () => {
+  const [events, setEvents] = useState<AuditEvent[]>([]);
+  const [status, setStatus] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [confirm, setConfirm] = useState(false);
+  const [open, setOpen] = useState<number | null>(null);
+  const load = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const [e, s] = await Promise.all([
+        api.getAuditEvents(),
+        api.verifyAuditChain(),
+      ]);
+      setEvents(e);
+      setStatus(s);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    load();
+  }, []);
+  const tamper = async () => {
+    try {
+      await api.tamperAuditLog();
+      setConfirm(false);
+      await load();
+    } catch (e: any) {
+      setError(e.message);
+    }
+  };
+  const valid = status?.status === "VALID";
+  return (
+    <div className="space-y-14">
+      <PageHeader
+        label="Tamper-evident evidence"
+        title="Audit ledger"
+        body="Every financial and authority event includes the previous entry hash, making silent historical edits detectable."
+        actions={
+          <>
+            <button
+              onClick={() => setConfirm(true)}
+              className="btn-secondary text-warning"
+            >
+              Simulate tamper
+            </button>
+            <button onClick={load} className="btn-primary">
+              <ArrowsClockwise />
+              Verify chain
+            </button>
+          </>
+        }
+      />
+      {error && <InlineError message={error} onRetry={load} />}
+      <DoubleBezel
+        innerClassName={`overflow-hidden ${valid ? "" : "bg-danger-light"}`}
+      >
+        <div
+          className={`grid gap-6 p-7 md:grid-cols-[1fr_auto] md:items-center md:p-10 ${valid ? "bg-teal text-surface" : "text-danger"}`}
+        >
+          <div className="flex items-start gap-5">
+            {valid ? (
+              <CheckCircle size={42} weight="light" />
+            ) : (
+              <ShieldWarning size={42} weight="light" />
+            )}
+            <div>
+              <p
+                className={`font-mono text-[10px] uppercase tracking-[.17em] ${valid ? "text-surface/60" : "text-danger/65"}`}
+              >
+                Chain integrity
+              </p>
+              <h2 className="mt-2 text-4xl font-semibold">
+                {valid ? "Valid and verified" : "Corruption detected"}
+              </h2>
+              <p
+                className={`mt-2 text-sm ${valid ? "text-surface/70" : "text-danger/80"}`}
+              >
+                {valid
+                  ? `${status?.total_events ?? events.length} events preserve sequence integrity.`
+                  : `Event ${status?.corrupted_sequence || "unknown"} no longer matches its recorded hash.`}
+              </p>
+            </div>
+          </div>
+          <div className="md:text-right">
+            <p
+              className={`font-mono text-[9px] uppercase tracking-[.16em] ${valid ? "text-surface/55" : "text-danger/60"}`}
+            >
+              Last verified
+            </p>
+            <p className="mt-1 font-mono text-sm">
+              {new Date().toLocaleTimeString()}
+            </p>
+          </div>
+        </div>
+        <div className="grid gap-5 p-6 md:grid-cols-2">
+          <div>
+            <p className="eyebrow">Chain head</p>
+            <div className="mt-3">
+              <HashValue value={events[0]?.current_hash || "No events"} />
+            </div>
+          </div>
+          <div>
+            <p className="eyebrow">Previous link</p>
+            <div className="mt-3">
+              <HashValue value={events[0]?.previous_hash || "Genesis block"} />
+            </div>
+          </div>
+        </div>
+      </DoubleBezel>
+      <section>
+        {loading ? (
+          <div className="grid gap-3">
+            <SkeletonBlock className="h-20" />
+            <SkeletonBlock className="h-20" />
+          </div>
+        ) : events.length === 0 ? (
+          <EmptyState
+            title="Ledger is empty"
+            body="Run a demo scenario to append the first verifiable financial event."
+          />
+        ) : (
+          <div className="grid gap-3">
+            {events.map((ev) => (
+              <article
+                key={ev.sequence}
+                className="overflow-hidden rounded-[1.3rem] bg-surface ring-1 ring-ink/[0.06]"
+              >
+                <button
+                  onClick={() =>
+                    setOpen(open === ev.sequence ? null : ev.sequence)
+                  }
+                  className="grid min-h-20 w-full grid-cols-[auto_1fr_auto] items-center gap-4 px-5 text-left"
+                >
+                  <span className="metric text-sm font-semibold">
+                    #{ev.sequence}
+                  </span>
+                  <span>
+                    <strong className="block text-sm">{ev.event_type}</strong>
+                    <small className="mt-1 block text-muted-ink">
+                      {new Date(ev.created_at).toLocaleString()} | {ev.actor}
+                    </small>
+                  </span>
+                  <CaretDown
+                    className={open === ev.sequence ? "rotate-180" : ""}
+                  />
+                </button>
+                {open === ev.sequence && (
+                  <div className="grid gap-5 border-t border-ink/10 bg-canvas p-5 md:grid-cols-2">
+                    <div>
+                      <p className="eyebrow">Current hash</p>
+                      <HashValue value={ev.current_hash} />
+                    </div>
+                    <div>
+                      <p className="eyebrow">Previous hash</p>
+                      <HashValue value={ev.previous_hash} />
+                    </div>
+                    <pre className="overflow-x-auto rounded-xl bg-ink p-4 text-[10px] text-canvas md:col-span-2">
+                      {JSON.stringify(ev.payload, null, 2)}
+                    </pre>
+                    {ev.event_type === "DEMO_SCENARIO_COMPLETED" && (
+                      <Link
+                        to={`/demo-lab?session=${ev.entity.split(":").pop()}`}
+                        className="btn-secondary md:col-span-2 md:justify-self-start"
+                      >
+                        Open the exact demo proof
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+      <ConfirmAction
+        open={confirm}
+        title="Modify a historical event?"
+        body="This intentional demonstration changes one stored payload. The hash-chain verifier will detect the exact corrupted sequence, and the state will remain corrupted until demo reset."
+        confirmLabel="Simulate tamper"
+        onConfirm={tamper}
+        onClose={() => setConfirm(false)}
+      />
+    </div>
+  );
+};

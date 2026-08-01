@@ -81,3 +81,18 @@ def test_seed_is_deterministic_in_shape_and_provides_30_day_history():
     assert first == second
     assert {name for name, _, _ in first} == {"Atlas Procurement Bot", "Scout Research Bot", "Vector Arbitrage Bot"}
     assert all(risk_points >= 4 for _, risk_points, _ in first)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_replay_restores_baseline_and_returns_a_fresh_session():
+    run_reset()
+    client = APIClient()
+    session = client.post("/api/v1/demo/sessions", {"scenario_key": "inflight_freeze"}, format="json", secure=True).json()
+    first = client.post(f"/api/v1/demo/sessions/{session['id']}/advance", {}, format="json", secure=True).json()
+    assert Decimal(first["current_state"]["reserved"]) > 0
+    replayed = client.post(f"/api/v1/demo/sessions/{session['id']}/replay", {}, format="json", secure=True)
+    assert replayed.status_code == 200
+    payload = replayed.json()
+    assert payload["id"] != session["id"]
+    assert payload["current_step"] == 0
+    assert Decimal(payload["current_state"]["reserved"]) == 0

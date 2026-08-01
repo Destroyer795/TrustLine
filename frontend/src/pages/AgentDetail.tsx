@@ -1,11 +1,372 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowsClockwise, Brain, Fingerprint, Gauge, Lock, LockOpen, Receipt, SealCheck, Wallet } from '@phosphor-icons/react';
-import { api } from '../services/api'; import { Agent, RepaymentSchedule, RiskEvidence, RiskProfile } from '../types'; import { StatusBadge, ImputedBadge } from '../components/StatusBadge'; import { ConfirmAction, DoubleBezel, InlineError, PageHeader, SkeletonBlock } from '../components/ui';
+import React, { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import {
+  ArrowLeft,
+  ArrowsClockwise,
+  Brain,
+  Fingerprint,
+  Gauge,
+  Lock,
+  LockOpen,
+  Receipt,
+  SealCheck,
+  Wallet,
+} from "@phosphor-icons/react";
+import { api } from "../services/api";
+import { Agent, AgentAnalytics, RepaymentSchedule, RiskEvidence, RiskProfile } from "../types";
+import { StatusBadge, ImputedBadge } from "../components/StatusBadge";
+import {
+  ConfirmAction,
+  DoubleBezel,
+  InlineError,
+  PageHeader,
+  SkeletonBlock,
+} from "../components/ui";
+import { LineChart } from "../components/Charts";
 
-export const AgentDetail:React.FC=()=>{const{id}=useParams();const[agent,setAgent]=useState<Agent|null>(null);const[risk,setRisk]=useState<RiskProfile|null>(null);const[repayments,setRepayments]=useState<RepaymentSchedule[]>([]);const[loading,setLoading]=useState(true);const[busy,setBusy]=useState(false);const[error,setError]=useState('');const[confirm,setConfirm]=useState(false);const[notice,setNotice]=useState('');const load=async()=>{if(!id)return;try{setLoading(true);setError('');const[a,r,p]=await Promise.all([api.getAgentDetail(id),api.getRiskProfile(id),api.getRepayments(id)]);setAgent(a);setRisk(r);setRepayments(p)}catch(e:any){setError(e.message||'Could not load underwriting evidence.')}finally{setLoading(false)}};useEffect(()=>{load()},[id]);const freeze=async()=>{if(!id)return;try{setBusy(true);await api.freezeAgent(id,'Principal emergency freeze from underwriting console');setNotice('Credit authority frozen. Active reservations were revoked.');setConfirm(false);await load()}catch(e:any){setError(e.message)}finally{setBusy(false)}};const unfreeze=async()=>{if(!id)return;try{setBusy(true);await api.unfreezeAgent(id,'Principal review completed');setNotice('Authority restored after principal review.');await load()}catch(e:any){setError(e.message)}finally{setBusy(false)}};const recalc=async()=>{if(!id)return;try{setBusy(true);await api.recalculateRisk(id);setNotice('Risk evidence and bounded limit recalculated.');await load()}catch(e:any){setError(e.message)}finally{setBusy(false)}};if(loading)return <div className="grid gap-5 lg:grid-cols-12"><SkeletonBlock className="h-80 lg:col-span-7"/><SkeletonBlock className="h-80 lg:col-span-5"/></div>;if(!agent||!risk)return <InlineError message={error||'Agent not found.'} onRetry={load}/>;const ca=agent.credit_account;return <div className="space-y-16"><Link to="/agents" className="inline-flex items-center gap-2 text-sm font-semibold text-muted-ink hover:text-ink"><ArrowLeft/>Back to agents</Link><PageHeader label="Underwriting evidence" title={agent.display_name} body={agent.purpose} actions={<><button onClick={recalc} disabled={busy} className="btn-secondary"><ArrowsClockwise/>Recalculate</button>{agent.status==='FROZEN'?<button onClick={unfreeze} disabled={busy} className="btn-secondary"><LockOpen/>Restore after review</button>:<button onClick={()=>setConfirm(true)} className="btn-danger"><Lock/>Freeze authority</button>}</>}/>{error&&<InlineError message={error}/>} {notice&&<div role="status" className="rounded-2xl bg-teal-light p-4 text-sm font-semibold text-teal-dark">{notice}</div>}
-<section className="grid gap-6 lg:grid-cols-12"><DoubleBezel className="lg:col-span-7" innerClassName="overflow-hidden"><div className="bg-teal p-7 text-surface md:p-10"><div className="flex items-center justify-between"><p className="font-mono text-[10px] uppercase tracking-[.18em] text-surface/60">Programmable credit line</p><StatusBadge status={agent.status}/></div><p className="metric mt-12 text-6xl font-semibold md:text-7xl">₹{Number(ca?.current_limit||0).toLocaleString('en-IN')}</p><p className="mt-2 text-surface/65">Current bounded limit</p></div><div className="grid grid-cols-2 gap-px bg-ink/10"><Credit label="Available" value={ca?.available_credit}/><Credit label="Outstanding" value={ca?.outstanding_principal}/><Credit label="Cold-start floor" value={ca?.cold_start_floor}/><Credit label="Principal ceiling" value={ca?.authorized_ceiling}/></div></DoubleBezel><div className="grid gap-5 lg:col-span-5"><DoubleBezel innerClassName="p-6"><div className="flex items-center gap-3 text-teal"><Fingerprint size={24}/><p className="eyebrow">Principal binding</p></div><h2 className="mt-6 text-3xl font-semibold">{agent.principal?.name}</h2><p className="mt-2 text-sm text-muted-ink">The accountable principal signed the active mandate.</p></DoubleBezel><DoubleBezel innerClassName="p-6"><div className="flex items-center gap-3 text-teal"><SealCheck size={24}/><p className="eyebrow">Mandate integrity</p></div><div className="mt-6 flex items-center justify-between"><strong>{agent.mandate?.is_valid?'Cryptographically valid':'Invalid or expired'}</strong><span className="font-mono text-xs">v{agent.mandate?.version}</span></div><p className="mt-2 text-xs text-muted-ink">Expires {agent.mandate?.expires_at?new Date(agent.mandate.expires_at).toLocaleDateString():'Unknown'}</p></DoubleBezel></div></section>
-<section><p className="eyebrow">Five-component risk profile</p><h2 className="mt-3 text-4xl font-semibold">Evidence, not an opaque score</h2><div className="stagger mt-7 grid gap-5 md:grid-cols-2 lg:grid-cols-12">{risk.evidence.map((ev,i)=><Evidence key={ev.component} ev={ev} className={i===0?'lg:col-span-5':i===1?'lg:col-span-7':'lg:col-span-4'}/>)}</div></section>
-<section className="grid gap-6 lg:grid-cols-12"><DoubleBezel className="lg:col-span-7" innerClassName="p-7 md:p-9"><div className="flex items-center gap-3"><Brain size={26} className="text-teal"/><h2 className="text-3xl font-semibold">Decision explanation</h2></div><p className="mt-6 text-lg leading-relaxed text-muted-ink">{risk.explanation.narrative}</p><span className="mt-6 inline-flex rounded-lg bg-canvas px-3 py-2 font-mono text-[10px] font-semibold text-teal-dark">{risk.explanation.is_llm_generated?'GEMINI NARRATION':'DETERMINISTIC EXPLANATION'}</span></DoubleBezel><DoubleBezel className="lg:col-span-5" innerClassName="p-7"><div className="flex items-center gap-3"><Receipt size={25} className="text-teal"/><h2 className="text-3xl font-semibold">Repayment history</h2></div><div className="mt-6 grid gap-3">{repayments.length?repayments.map(p=><div key={p.id} className="flex items-center justify-between rounded-2xl bg-canvas p-4"><div><p className="metric font-semibold">₹{Number(p.amount).toLocaleString('en-IN')}</p><p className="text-xs text-muted-ink">Due {new Date(p.due_date).toLocaleDateString()}</p></div><strong className="font-mono text-xs">{p.status}</strong></div>):<p className="rounded-2xl bg-canvas p-5 text-sm text-muted-ink">No repayment cycles recorded yet.</p>}</div></DoubleBezel></section><ConfirmAction open={confirm} title="Freeze this credit line?" body="The gateway will reject future draws and revoke every active, unsettled reservation. The agent cannot override this action." confirmLabel="Freeze authority" onConfirm={freeze} onClose={()=>setConfirm(false)} busy={busy}/></div>};
-const Credit=({label,value}:{label:string;value?:string})=><div className="bg-surface p-5 md:p-6"><p className="eyebrow">{label}</p><p className="metric mt-2 text-2xl font-semibold">₹{Number(value||0).toLocaleString('en-IN')}</p></div>;
-const Evidence=({ev,className}:{ev:RiskEvidence;className:string})=>{const icons:any={IDENTITY:Fingerprint,TASK:Gauge,REPAYMENT:Receipt,SPENDING:Wallet,EXPOSURE:Lock};const Icon=icons[ev.component]||Gauge;const pct=ev.component==='EXPOSURE'?Number(ev.score)*100:Number(ev.score)*100;return <DoubleBezel className={className} innerClassName="p-6"><div className="flex items-start justify-between gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-light text-teal"><Icon size={22} weight="light"/></span><ImputedBadge isImputed={ev.is_imputed}/></div><p className="metric mt-8 text-5xl font-semibold">{pct.toFixed(0)}%</p><h3 className="mt-3 text-2xl font-semibold">{ev.component.replace('_',' ').toLowerCase()}</h3><p className="mt-3 text-sm leading-relaxed text-muted-ink">{ev.reason}</p><p className="mt-5 font-mono text-[10px] text-muted-ink">{ev.evidence_count} evidence item{ev.evidence_count===1?'':'s'} | {ev.source}</p></DoubleBezel>};
+export const AgentDetail: React.FC = () => {
+  const { id } = useParams();
+  const [agent, setAgent] = useState<Agent | null>(null);
+  const [risk, setRisk] = useState<RiskProfile | null>(null);
+  const [repayments, setRepayments] = useState<RepaymentSchedule[]>([]);
+  const [analytics, setAnalytics] = useState<AgentAnalytics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [confirm, setConfirm] = useState(false);
+  const [notice, setNotice] = useState("");
+  const load = async () => {
+    if (!id) return;
+    try {
+      setLoading(true);
+      setError("");
+      const [a, r, p, history] = await Promise.all([
+        api.getAgentDetail(id),
+        api.getRiskProfile(id),
+        api.getRepayments(id),
+        api.getAgentAnalytics(id),
+      ]);
+      setAgent(a);
+      setRisk(r);
+      setRepayments(p);
+      setAnalytics(history);
+    } catch (e: any) {
+      setError(e.message || "Could not load underwriting evidence.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    load();
+  }, [id]);
+  const freeze = async () => {
+    if (!id) return;
+    try {
+      setBusy(true);
+      await api.freezeAgent(
+        id,
+        "Principal emergency freeze from underwriting console",
+      );
+      setNotice("Credit authority frozen. Active reservations were revoked.");
+      setConfirm(false);
+      await load();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const unfreeze = async () => {
+    if (!id) return;
+    try {
+      setBusy(true);
+      await api.unfreezeAgent(id, "Principal review completed");
+      setNotice("Authority restored after principal review.");
+      await load();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const recalc = async () => {
+    if (!id) return;
+    try {
+      setBusy(true);
+      await api.recalculateRisk(id);
+      setNotice("Risk evidence and bounded limit recalculated.");
+      await load();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  if (loading)
+    return (
+      <div className="grid gap-5 lg:grid-cols-12">
+        <SkeletonBlock className="h-80 lg:col-span-7" />
+        <SkeletonBlock className="h-80 lg:col-span-5" />
+      </div>
+    );
+  if (!agent || !risk)
+    return <InlineError message={error || "Agent not found."} onRetry={load} />;
+  const ca = agent.credit_account;
+  return (
+    <div className="space-y-16">
+      <Link
+        to="/agents"
+        className="inline-flex items-center gap-2 text-sm font-semibold text-muted-ink hover:text-ink"
+      >
+        <ArrowLeft />
+        Back to agents
+      </Link>
+      <PageHeader
+        label="Underwriting evidence"
+        title={agent.display_name}
+        body={agent.purpose}
+        actions={
+          <>
+            <button onClick={recalc} disabled={busy} className="btn-secondary">
+              <ArrowsClockwise />
+              Recalculate
+            </button>
+            {agent.status === "FROZEN" ? (
+              <button
+                onClick={unfreeze}
+                disabled={busy}
+                className="btn-secondary"
+              >
+                <LockOpen />
+                Restore after review
+              </button>
+            ) : (
+              <button onClick={() => setConfirm(true)} className="btn-danger">
+                <Lock />
+                Freeze authority
+              </button>
+            )}
+          </>
+        }
+      />
+      {error && <InlineError message={error} />}{" "}
+      {notice && (
+        <div
+          role="status"
+          className="rounded-2xl bg-teal-light p-4 text-sm font-semibold text-teal-dark"
+        >
+          {notice}
+        </div>
+      )}
+      <section className="grid gap-6 lg:grid-cols-12">
+        <DoubleBezel className="lg:col-span-7" innerClassName="overflow-hidden">
+          <div className="bg-teal p-7 text-surface md:p-10">
+            <div className="flex items-center justify-between">
+              <p className="font-mono text-[10px] uppercase tracking-[.18em] text-surface/60">
+                Programmable credit line
+              </p>
+              <StatusBadge status={agent.status} />
+            </div>
+            <p className="metric mt-12 text-6xl font-semibold md:text-7xl">
+              ₹{Number(ca?.current_limit || 0).toLocaleString("en-IN")}
+            </p>
+            <p className="mt-2 text-surface/65">Current bounded limit</p>
+          </div>
+          <div className="grid grid-cols-2 gap-px bg-ink/10">
+            <Credit label="Available" value={ca?.available_credit} />
+            <Credit label="Outstanding" value={ca?.outstanding_principal} />
+            <Credit label="Cold-start floor" value={ca?.cold_start_floor} />
+            <Credit label="Principal ceiling" value={ca?.authorized_ceiling} />
+          </div>
+        </DoubleBezel>
+        <div className="grid gap-5 lg:col-span-5">
+          <DoubleBezel innerClassName="p-6">
+            <div className="flex items-center gap-3 text-teal">
+              <Fingerprint size={24} />
+              <p className="eyebrow">Principal binding</p>
+            </div>
+            <h2 className="mt-6 text-3xl font-semibold">
+              {agent.principal?.name}
+            </h2>
+            <p className="mt-2 text-sm text-muted-ink">
+              The accountable principal signed the active mandate.
+            </p>
+          </DoubleBezel>
+          <DoubleBezel innerClassName="p-6">
+            <div className="flex items-center gap-3 text-teal">
+              <SealCheck size={24} />
+              <p className="eyebrow">Mandate integrity</p>
+            </div>
+            <div className="mt-6 flex items-center justify-between">
+              <strong>
+                {agent.mandate?.is_valid
+                  ? "Cryptographically valid"
+                  : "Invalid or expired"}
+              </strong>
+              <span className="font-mono text-xs">
+                v{agent.mandate?.version}
+              </span>
+            </div>
+            <p className="mt-2 text-xs text-muted-ink">
+              Expires{" "}
+              {agent.mandate?.expires_at
+                ? new Date(agent.mandate.expires_at).toLocaleDateString()
+                : "Unknown"}
+            </p>
+          </DoubleBezel>
+        </div>
+      </section>
+      {analytics && (
+        <section className="grid gap-6 lg:grid-cols-2">
+          <DoubleBezel innerClassName="p-7 md:p-9">
+            <p className="eyebrow">Risk history</p>
+            <h2 className="mb-6 mt-2 text-3xl font-semibold">Evidence trajectory</h2>
+            <LineChart
+              data={analytics.risk_history.map((point) => ({
+                label: new Date(point.at).toLocaleDateString("en-IN", { day: "2-digit", month: "short" }),
+                value: Number(point.score),
+              }))}
+              label="Risk score"
+            />
+          </DoubleBezel>
+          <DoubleBezel innerClassName="p-7 md:p-9">
+            <p className="eyebrow">Limit and exposure</p>
+            <h2 className="mb-6 mt-2 text-3xl font-semibold">Boundaries over time</h2>
+            <LineChart
+              data={analytics.limit_history.map((point, index) => ({
+                label: new Date(point.at).toLocaleDateString("en-IN", { day: "2-digit", month: "short" }),
+                value: Number(point.limit),
+                secondary: Number(analytics.exposure_history[index]?.balance || 0),
+              }))}
+              label="Credit limit"
+              secondaryLabel="Exposure"
+            />
+          </DoubleBezel>
+        </section>
+      )}
+      <section>
+        <p className="eyebrow">Five-component risk profile</p>
+        <h2 className="mt-3 text-4xl font-semibold">
+          Evidence, not an opaque score
+        </h2>
+        <div className="stagger mt-7 grid gap-5 md:grid-cols-2 lg:grid-cols-12">
+          {risk.evidence.map((ev, i) => (
+            <Evidence
+              key={ev.component}
+              ev={ev}
+              className={
+                i === 0
+                  ? "lg:col-span-5"
+                  : i === 1
+                    ? "lg:col-span-7"
+                    : "lg:col-span-4"
+              }
+            />
+          ))}
+        </div>
+      </section>
+      <section className="grid gap-6 lg:grid-cols-12">
+        <DoubleBezel className="lg:col-span-7" innerClassName="p-7 md:p-9">
+          <div className="flex items-center gap-3">
+            <Brain size={26} className="text-teal" />
+            <h2 className="text-3xl font-semibold">Decision explanation</h2>
+          </div>
+          <p className="mt-6 text-lg leading-relaxed text-muted-ink">
+            {risk.explanation.narrative}
+          </p>
+          <span className="mt-6 inline-flex rounded-lg bg-canvas px-3 py-2 font-mono text-[10px] font-semibold text-teal-dark">
+            {risk.explanation.is_llm_generated
+              ? "GEMINI NARRATION"
+              : "DETERMINISTIC EXPLANATION"}
+          </span>
+        </DoubleBezel>
+        <DoubleBezel className="lg:col-span-5" innerClassName="p-7">
+          <div className="flex items-center gap-3">
+            <Receipt size={25} className="text-teal" />
+            <h2 className="text-3xl font-semibold">Repayment history</h2>
+          </div>
+          <div className="mt-6 grid gap-3">
+            {repayments.length ? (
+              repayments.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between rounded-2xl bg-canvas p-4"
+                >
+                  <div>
+                    <p className="metric font-semibold">
+                      ₹{Number(p.amount).toLocaleString("en-IN")}
+                    </p>
+                    <p className="text-xs text-muted-ink">
+                      Due {new Date(p.due_date).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <strong className="font-mono text-xs">{p.status}</strong>
+                </div>
+              ))
+            ) : (
+              <p className="rounded-2xl bg-canvas p-5 text-sm text-muted-ink">
+                No repayment cycles recorded yet.
+              </p>
+            )}
+          </div>
+        </DoubleBezel>
+      </section>
+      <ConfirmAction
+        open={confirm}
+        title="Freeze this credit line?"
+        body="The gateway will reject future draws and revoke every active, unsettled reservation. The agent cannot override this action."
+        confirmLabel="Freeze authority"
+        onConfirm={freeze}
+        onClose={() => setConfirm(false)}
+        busy={busy}
+      />
+    </div>
+  );
+};
+const Credit = ({ label, value }: { label: string; value?: string }) => (
+  <div className="bg-surface p-5 md:p-6">
+    <p className="eyebrow">{label}</p>
+    <p className="metric mt-2 text-2xl font-semibold">
+      ₹{Number(value || 0).toLocaleString("en-IN")}
+    </p>
+  </div>
+);
+const Evidence = ({
+  ev,
+  className,
+}: {
+  ev: RiskEvidence;
+  className: string;
+}) => {
+  const icons: any = {
+    IDENTITY: Fingerprint,
+    TASK: Gauge,
+    REPAYMENT: Receipt,
+    SPENDING: Wallet,
+    EXPOSURE: Lock,
+  };
+  const Icon = icons[ev.component] || Gauge;
+  const pct =
+    ev.component === "EXPOSURE"
+      ? Number(ev.score) * 100
+      : Number(ev.score) * 100;
+  return (
+    <DoubleBezel className={className} innerClassName="p-6">
+      <div className="flex items-start justify-between gap-3">
+        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-light text-teal">
+          <Icon size={22} weight="light" />
+        </span>
+        <ImputedBadge isImputed={ev.is_imputed} />
+      </div>
+      <p className="metric mt-8 text-5xl font-semibold">{pct.toFixed(0)}%</p>
+      <h3 className="mt-3 text-2xl font-semibold">
+        {ev.component.replace("_", " ").toLowerCase()}
+      </h3>
+      <p className="mt-3 text-sm leading-relaxed text-muted-ink">{ev.reason}</p>
+      <p className="mt-5 font-mono text-[10px] text-muted-ink">
+        {ev.evidence_count} evidence item{ev.evidence_count === 1 ? "" : "s"} |{" "}
+        {ev.source}
+      </p>
+    </DoubleBezel>
+  );
+};

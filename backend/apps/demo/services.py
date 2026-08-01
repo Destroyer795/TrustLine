@@ -268,11 +268,10 @@ def advance_session(session):
 
 
 def replay_session(session):
-    if session.steps.exists():
-        raise APIError("DEMO_RESET_REQUIRED", "Reset the demo before replaying a state-changing scenario.", status_code=409)
-    session.current_step = 0
-    session.status = "READY"
-    session.final_state = session.initial_state
-    session.completed_at = None
-    session.save()
-    return session
+    # A story replay must restore the deterministic baseline because most stories
+    # intentionally mutate authority or exposure. This is explicit and synchronous;
+    # no background bot or random fixture changes the outcome.
+    scenario_key = session.scenario_key
+    from scripts.demo_reset import run_reset
+    run_reset()
+    return create_session(scenario_key)
