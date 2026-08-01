@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #F4F0E6;
+    color: #1E2726;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  h1, h2, h3, .font-serif {
+    font-family: 'Fraunces', serif;
+  }
+}
+
+.card-editorial {
+  background-color: #FFFCF5;
+  border: 1px solid #D8D1C3;
+  box-shadow: 0 2px 4px rgba(30, 39, 38, 0.04);
+}
