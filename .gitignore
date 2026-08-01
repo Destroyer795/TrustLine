@@ -57,6 +57,7 @@ frontend/dist/
 *.swo
 
 # OS generated files
+backend/staticfiles/
 .DS_Store
 .DS_Store?
 ehthumbs.db
