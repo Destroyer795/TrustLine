@@ -4,6 +4,7 @@ export interface Principal {
   id: string;
   name: string;
   email: string;
+  credit_pool_ceiling?: string;
   verification?: {
     level: string;
     status: string;
