@@ -28,7 +28,7 @@ export default {
         border: '#D8D1C3'
       },
       fontFamily: {
-        serif: ['"Geist Sans"', 'sans-serif'],
+        serif: ['"Newsreader"', 'Georgia', 'serif'],
         sans: ['"Geist Sans"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace']
       }

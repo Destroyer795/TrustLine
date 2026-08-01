@@ -8,13 +8,16 @@ import { AgentDetail } from './pages/AgentDetail';
 import { DemoLab } from './pages/DemoLab';
 import { AuditLog } from './pages/AuditLog';
 import { SystemHealth } from './pages/SystemHealth';
+import { Presentation } from './pages/Presentation';
+import { NotFound } from './pages/NotFound';
 
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <div className="min-h-[100dvh] flex flex-col bg-canvas text-ink">
+        <a href="#main-content" className="skip-link">Skip to content</a>
         <Navbar />
-        <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
+        <main id="main-content" className="mx-auto w-full max-w-7xl flex-1 px-4 pb-20 pt-12 md:px-6 md:pt-20">
           <Routes>
             <Route path="/" element={<Overview />} />
             <Route path="/agents" element={<AgentList />} />
@@ -23,11 +26,11 @@ export const App: React.FC = () => {
             <Route path="/demo-lab" element={<DemoLab />} />
             <Route path="/audit" element={<AuditLog />} />
             <Route path="/system" element={<SystemHealth />} />
+            <Route path="/presentation" element={<Presentation />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
-        <footer className="bg-surface border-t border-border py-6 mt-12  text-xs font-mono text-muted-ink">
-          TrustLine - Autonomous Agent Credit Infrastructure | 31-Hour FinTech Hackathon Build
-        </footer>
+        <footer className="mx-auto mb-6 w-[calc(100%-2rem)] max-w-7xl rounded-[1.5rem] bg-ink px-6 py-7 text-xs font-mono text-canvas md:flex md:items-center md:justify-between"><span>TrustLine | Autonomous Agent Credit Infrastructure</span><span className="mt-3 block text-canvas/60 md:mt-0">Bounded exposure. Enforced outside the agent.</span></footer>
       </div>
     </BrowserRouter>
   );

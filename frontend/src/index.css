@@ -2,28 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    background-color: #F4F0E6;
-    color: #1E2726;
-    font-family: 'Geist Sans', sans-serif;
-  }
-  
-  h1, h2, h3, .font-serif {
-    font-family: 'Geist Sans', sans-serif;
-    letter-spacing: -0.025em;
-  }
+:root {
+  --canvas: #f4f0e6; --surface: #fffcf5; --ink: #1e2726; --muted: #5f6966;
+  --teal: #2f6f68; --teal-dark: #245651; --teal-light: #e6f0ef;
+  --olive: #6e7653; --warning: #c86a3b; --danger: #a94442; --line: #d8d1c3;
+  --ease-heavy: cubic-bezier(0.32, 0.72, 0, 1);
+  --shadow-soft: 0 28px 70px rgba(55, 67, 63, 0.10);
 }
 
 @layer base {
-  :focus-visible {
-    outline: 3px solid #2F6F68;
-    outline-offset: 3px;
-  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--canvas); color: var(--ink); font-family: 'Geist Sans', sans-serif; text-rendering: optimizeLegibility; }
+  body::before { content: ''; position: fixed; inset: 0; z-index: 40; pointer-events: none; opacity: .035; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E"); }
+  h1, h2, h3, .font-serif { font-family: 'Newsreader', Georgia, serif; letter-spacing: -.035em; text-wrap: balance; }
+  p { text-wrap: pretty; }
+  button, a, input, select, textarea { transition: transform 420ms var(--ease-heavy), opacity 420ms var(--ease-heavy), color 420ms var(--ease-heavy), background-color 420ms var(--ease-heavy), box-shadow 420ms var(--ease-heavy); }
+  button:active, a[role='button']:active { transform: scale(.98); }
+  :focus-visible { outline: 3px solid var(--teal); outline-offset: 3px; }
+  ::selection { background: var(--teal-light); color: var(--teal-dark); }
 }
 
-.card-editorial {
-  background-color: #FFFCF5;
-  border: 1px solid #D8D1C3;
-  box-shadow: 0 2px 4px rgba(30, 39, 38, 0.04);
+@layer components {
+  .skip-link { @apply fixed left-4 top-4 z-[70] -translate-y-24 rounded-full bg-ink px-5 py-3 text-sm font-semibold text-surface; }
+  .skip-link:focus { @apply translate-y-0; }
+  .display-title { font-size: clamp(2.6rem, 5vw, 5.4rem); line-height: .92; }
+  .hero-title { font-size: clamp(3.25rem, 7vw, 7rem); line-height: .86; }
+  .eyebrow { @apply font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-teal-dark; }
+  .bezel { @apply rounded-[2rem] bg-ink/[0.045] p-1.5 ring-1 ring-ink/[0.06]; box-shadow: var(--shadow-soft); }
+  .bezel-core { @apply rounded-[calc(2rem-0.375rem)] bg-surface shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)]; }
+  .card-editorial { @apply rounded-[1.5rem] bg-surface shadow-[0_20px_55px_rgba(55,67,63,0.07)] ring-1 ring-ink/[0.06]; }
+  .control { @apply min-h-11 w-full rounded-xl bg-canvas px-3 py-2.5 text-sm text-ink ring-1 ring-ink/10 placeholder:text-muted-ink/60 focus:ring-2 focus:ring-teal; }
+  .btn-primary { @apply inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-surface shadow-[0_12px_30px_rgba(47,111,104,0.22)] hover:bg-teal-dark disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-secondary { @apply inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-surface px-5 py-2.5 text-sm font-semibold text-ink ring-1 ring-ink/10 hover:bg-teal-light; }
+  .btn-danger { @apply inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-danger px-5 py-2.5 text-sm font-semibold text-surface hover:opacity-90 disabled:opacity-50; }
+  .icon-island { @apply flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-500 group-hover:translate-x-1; }
+  .metric { @apply font-mono tabular-nums tracking-[-0.04em]; }
+  .page-enter { animation: page-enter 820ms var(--ease-heavy) both; }
+  .stagger > * { animation: page-enter 820ms var(--ease-heavy) both; }
+  .stagger > *:nth-child(2) { animation-delay: 80ms; }
+  .stagger > *:nth-child(3) { animation-delay: 160ms; }
+  .stagger > *:nth-child(4) { animation-delay: 240ms; }
+  .skeleton { @apply relative overflow-hidden bg-ink/[0.07]; }
+  .skeleton::after { content: ''; @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/50 to-transparent; animation: shimmer 1.5s infinite; }
 }
+
+@keyframes page-enter { from { opacity: 0; transform: translateY(2rem); } to { opacity: 1; transform: translateY(0); } }
+@keyframes shimmer { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; } }

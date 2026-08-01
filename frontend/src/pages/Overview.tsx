@@ -1,133 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, ArrowRight, Lightning, Scales, Lock, ArrowsClockwise } from '@phosphor-icons/react';
+import { ArrowRight, Bank, Fingerprint, Gauge, LockKey, Repeat, SealCheck } from '@phosphor-icons/react';
 import { api } from '../services/api';
+import { Agent } from '../types';
+import { DoubleBezel, InlineError, SkeletonBlock } from '../components/ui';
+import { StatusBadge } from '../components/StatusBadge';
 
 export const Overview: React.FC = () => {
-  const [stats, setStats] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<any>(null); const [agent, setAgent] = useState<Agent | null>(null); const [error, setError] = useState(''); const [loading, setLoading] = useState(true);
+  const load = async () => { try { setLoading(true); setError(''); const [s, agents] = await Promise.all([api.getDemoStatus(), api.getAgents()]); setStats(s); setAgent(agents.find(a => a.status === 'NORMAL') || agents[0] || null); } catch (e: any) { setError(e.message || 'Backend unavailable. Render may be waking up.'); } finally { setLoading(false); } };
+  useEffect(() => { load(); }, []);
+  const loop = [Fingerprint, Gauge, Bank, LockKey, Repeat, SealCheck];
+  return <div className="space-y-24 md:space-y-32">
+    <section className="grid min-h-[72dvh] items-center gap-10 lg:grid-cols-[1.15fr_.85fr]">
+      <div className="page-enter"><p className="eyebrow mb-5">Autonomous Agent Credit Infrastructure</p><h1 className="hero-title max-w-4xl font-serif font-semibold">Credit for agents.<br/><em className="font-medium text-teal">Control for principals.</em></h1><p className="mt-7 max-w-[58ch] text-lg leading-relaxed text-muted-ink">Extend bounded working capital to autonomous agents through verified authority, behavioral underwriting, and repayment enforced outside the agent.</p><div className="mt-8 flex flex-wrap items-center gap-4"><Link to="/demo-lab" className="btn-primary">Run the proof <span className="icon-island"><ArrowRight size={17} /></span></Link><Link to="/presentation" className="font-semibold text-ink underline decoration-teal/40 underline-offset-8 hover:decoration-teal">Inspect the argument</Link></div>{error && <div className="mt-6"><InlineError message={error} onRetry={load} /></div>}</div>
+      <DoubleBezel className="page-enter" innerClassName="overflow-hidden">
+        <div className="bg-teal px-7 py-6 text-surface"><div className="flex items-center justify-between"><span className="font-mono text-[10px] uppercase tracking-[.18em] text-surface/70">Live credit instrument</span>{agent && <StatusBadge status={agent.status} />}</div><p className="mt-10 font-serif text-4xl font-semibold">{loading ? 'Loading agent…' : agent?.display_name || 'No agent registered'}</p><p className="mt-2 text-sm text-surface/70">Bound to {agent?.principal_name || 'a verified principal'}</p></div>
+        <div className="grid grid-cols-2 gap-px bg-ink/10"><div className="bg-surface p-6"><p className="eyebrow">Current limit</p>{loading ? <SkeletonBlock className="mt-3 h-10" /> : <p className="metric mt-3 text-3xl font-semibold">₹{Number(agent?.current_limit || 0).toLocaleString('en-IN')}</p>}</div><div className="bg-surface p-6"><p className="eyebrow">Available</p>{loading ? <SkeletonBlock className="mt-3 h-10" /> : <p className="metric mt-3 text-3xl font-semibold">₹{Number(agent?.available_credit || 0).toLocaleString('en-IN')}</p>}</div></div>
+        <div className="flex items-center justify-between px-7 py-5 font-mono text-xs"><span>Gateway enforcement</span><span className="flex items-center gap-2 font-semibold text-teal-dark"><SealCheck size={18} weight="light" />ACTIVE</span></div>
+      </DoubleBezel>
+    </section>
 
-  const loadStats = async () => {
-    try {
-      const res = await api.getDemoStatus();
-      setStats(res);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+    <section><p className="eyebrow">The judge's three questions</p><div className="stagger mt-7 grid gap-5 md:grid-cols-12"><article className="card-editorial p-7 md:col-span-5 md:p-9"><Fingerprint size={34} weight="light" className="text-teal"/><h2 className="mt-12 text-4xl font-semibold">Who authorized it?</h2><p className="mt-4 max-w-[45ch] leading-relaxed text-muted-ink">A scoped Ed25519 mandate binds agent, principal, linked account, capabilities, limits, and expiry.</p></article><article className="rounded-[1.5rem] bg-olive p-7 text-surface md:col-span-3 md:p-9"><Gauge size={34} weight="light"/><h2 className="mt-12 text-3xl font-semibold">How is risk bounded?</h2><p className="mt-4 leading-relaxed text-surface/75">Cold-start floors, principal-wide ceilings, asymmetric limit changes, and atomic reservations cap loss.</p></article><article className="card-editorial p-7 md:col-span-4 md:p-9"><Bank size={34} weight="light" className="text-warning"/><h2 className="mt-12 text-4xl font-semibold">Who repays?</h2><p className="mt-4 leading-relaxed text-muted-ink">The principal-backed mandate pulls automatically. Failure freezes the line instead of silently accruing debt.</p></article></div></section>
 
-  useEffect(() => {
-    loadStats();
-  }, []);
+    <section className="grid gap-10 lg:grid-cols-[.72fr_1.28fr]"><div><p className="eyebrow">Closed feedback loop</p><h2 className="display-title mt-5 font-semibold">The weights are not the product.</h2><p className="mt-6 max-w-[52ch] leading-relaxed text-muted-ink">The product is the loop: behavior, decision, outcome, and recalibration. Exposure stays bounded while evidence compounds.</p></div><DoubleBezel innerClassName="p-7 md:p-9"><div className="grid gap-3 sm:grid-cols-2">{['Verified mandate','Risk profile','Credit limit','Atomic gateway','Mandate pull','Outcome history'].map((label,i) => { const Icon=loop[i]; return <div key={label} className="flex items-center gap-4 rounded-2xl bg-canvas p-4"><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-teal-light text-teal"><Icon size={22} weight="light"/></span><span className="font-semibold">{label}</span><span className="ml-auto font-mono text-[10px] text-muted-ink">0{i+1}</span></div>;})}</div></DoubleBezel></section>
 
-  return (
-    <div className="space-y-10">
-      {/* Hero Section */}
-      <section className="card-editorial p-10 rounded-lg relative overflow-hidden">
-        <div className="max-w-3xl space-y-4">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-teal-light text-teal-dark rounded text-xs font-mono font-semibold uppercase tracking-wider">
-            <span>FinTech Hackathon Solution</span>
-          </div>
-          <h1 className="text-4xl font-serif font-bold text-ink leading-tight">
-            TrustLine — Autonomous Agent Credit Infrastructure
-          </h1>
-          <p className="text-muted-ink text-lg leading-relaxed font-sans">
-            How can temporary working capital be extended to an AI agent when the agent itself lacks legal identity, collateral, and contractual accountability?
-          </p>
-          <div className="pt-4 flex items-center space-x-4">
-            <Link
-              to="/demo-lab"
-              className="px-5 py-2.5 bg-teal text-surface font-medium rounded hover:bg-teal-dark transition-colors flex items-center space-x-2 shadow-sm"
-            >
-              <span>Launch 3-Minute Demo Lab</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link
-              to="/agents"
-              className="px-5 py-2.5 bg-canvas border border-border text-ink font-medium rounded hover:bg-surface transition-colors"
-            >
-              View Agents Inventory
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Core Architectural Pillars */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="card-editorial p-6 rounded-lg space-y-3">
-          <div className="w-10 h-10 rounded bg-teal/10 text-teal flex items-center justify-center font-serif font-bold">
-            <Lock className="w-5 h-5" />
-          </div>
-          <h3 className="font-serif font-bold text-xl text-ink">Ed25519 Signed Mandates</h3>
-          <p className="text-sm text-muted-ink leading-relaxed">
-            Every agent draw is verified against a canonical Ed25519-signed capability mandate bound to an accountable human or enterprise principal.
-          </p>
-        </div>
-
-        <div className="card-editorial p-6 rounded-lg space-y-3">
-          <div className="w-10 h-10 rounded bg-warning/10 text-warning flex items-center justify-center font-serif font-bold">
-            <Scales className="w-5 h-5" />
-          </div>
-          <h3 className="font-serif font-bold text-xl text-ink">AHP Policy Priors & Asymmetric Limits</h3>
-          <p className="text-sm text-muted-ink leading-relaxed">
-            Scores 5 risk components separately. Provisional priors are explicitly tagged. Credit grows slowly (&alpha;<sub>up</sub> = 0.15) and drops rapidly (&alpha;<sub>down</sub> = 0.65).
-          </p>
-        </div>
-
-        <div className="card-editorial p-6 rounded-lg space-y-3">
-          <div className="w-10 h-10 rounded bg-olive/10 text-olive flex items-center justify-center font-serif font-bold">
-            <Lightning className="w-5 h-5" />
-          </div>
-          <h3 className="font-serif font-bold text-xl text-ink">Outside-Agent Enforcement</h3>
-          <p className="text-sm text-muted-ink leading-relaxed">
-            Enforcement lives in the backend API Gateway outside the agent's LLM context. Atomic checks via PostgreSQL <code className="font-mono text-xs bg-canvas px-1 rounded">select_for_update</code> eliminate double-spend race conditions.
-          </p>
-        </div>
-      </section>
-
-      {/* System Live Metrics */}
-      <section className="card-editorial p-8 rounded-lg space-y-6">
-        <div className="flex items-center justify-between border-b border-border pb-4">
-          <div>
-            <h2 className="text-2xl font-serif font-bold text-ink">System Real-Time Summary</h2>
-            <p className="text-xs font-mono text-muted-ink mt-1">OPERATIONAL DATABASE STATE</p>
-          </div>
-          <button
-            onClick={loadStats}
-            className="px-3 py-1.5 bg-canvas border border-border text-xs font-medium rounded hover:bg-surface transition-colors flex items-center space-x-1"
-          >
-            <ArrowsClockwise className="w-3.5 h-3.5" />
-            <span>Refresh</span>
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div className="p-4 bg-canvas rounded border border-border">
-            <span className="text-xs font-mono text-muted-ink block uppercase">Principals</span>
-            <span className="text-2xl font-serif font-bold text-ink block mt-1">{loading ? '...' : stats?.principals}</span>
-          </div>
-          <div className="p-4 bg-canvas rounded border border-border">
-            <span className="text-xs font-mono text-muted-ink block uppercase">Active Agents</span>
-            <span className="text-2xl font-serif font-bold text-ink block mt-1">{loading ? '...' : stats?.agents}</span>
-          </div>
-          <div className="p-4 bg-canvas rounded border border-border">
-            <span className="text-xs font-mono text-muted-ink block uppercase">Draw Requests</span>
-            <span className="text-2xl font-serif font-bold text-ink block mt-1">{loading ? '...' : stats?.draws}</span>
-          </div>
-          <div className="p-4 bg-canvas rounded border border-border">
-            <span className="text-xs font-mono text-muted-ink block uppercase">Repayments</span>
-            <span className="text-2xl font-serif font-bold text-ink block mt-1">{loading ? '...' : stats?.repayments}</span>
-          </div>
-          <div className="p-4 bg-canvas rounded border border-border">
-            <span className="text-xs font-mono text-muted-ink block uppercase">Audit Chain</span>
-            <span className={`text-sm font-mono font-bold block mt-2 ${stats?.audit_chain_valid ? 'text-teal' : 'text-danger'}`}>
-              {loading ? '...' : stats?.audit_chain_valid ? '✅ VALID' : '❌ CORRUPTED'}
-            </span>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
+    <section className="rounded-[2rem] bg-ink p-8 text-canvas md:p-14"><p className="eyebrow text-canvas/60">The honest claim</p><blockquote className="mt-6 max-w-5xl font-serif text-3xl font-medium leading-tight md:text-5xl">There is no historical default data for autonomous agents. TrustLine uses documented expert priors while structurally bounding exposure, then recalibrates as real outcomes accumulate.</blockquote><div className="mt-10 grid grid-cols-2 gap-6 border-t border-canvas/15 pt-8 md:grid-cols-4">{[['Principals',stats?.principals],['Agents',stats?.agents],['Draws',stats?.draws],['Audit events',stats?.audit_events]].map(([k,v])=><div key={k}><p className="metric text-3xl">{loading ? '—' : v ?? 0}</p><p className="mt-1 text-xs text-canvas/55">{k}</p></div>)}</div></section>
+  </div>;
 };
