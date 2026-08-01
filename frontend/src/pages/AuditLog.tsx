@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { ShieldCheck, ShieldAlert, RefreshCw, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, RefreshCw, FileWarning } from 'lucide-react';
 import { AuditEvent } from '../types';
 import { api } from '../services/api';
+import { PageHeader } from '../components/PageHeader';
+import { EmptyState } from '../components/EmptyState';
+import { LoadingState } from '../components/LoadingState';
+import { cn } from '../lib/cn';
 
 export const AuditLog: React.FC = () => {
   const [events, setEvents] = useState<AuditEvent[]>([]);
@@ -33,79 +37,115 @@ export const AuditLog: React.FC = () => {
     await loadAuditData();
   };
 
+  const valid = chainStatus?.status === 'VALID';
+  const corrupt = chainStatus != null && !valid;
+
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-serif font-bold text-ink">Tamper-Evident Audit Ledger</h1>
-          <p className="text-sm text-muted-ink mt-1">SHA-256 hash-chained event history verifying immutable sequence integrity.</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={handleTamperTest}
-            className="px-3 py-2 bg-canvas border border-warning/40 text-warning text-xs font-medium rounded hover:bg-surface transition-colors"
-          >
-            Simulate Payload Tamper
-          </button>
-          <button
-            onClick={loadAuditData}
-            className="px-4 py-2 bg-teal text-surface text-sm font-medium rounded hover:bg-teal-dark transition-colors flex items-center space-x-2 shadow-sm"
-          >
-            <RefreshCw className="w-4 h-4" />
-            <span>Verify Audit Chain</span>
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        kicker="Tamper-Evident Ledger"
+        title="Tamper-Evident Audit Ledger"
+        description="SHA-256 hash-chained event history verifying immutable sequence integrity."
+        actions={
+          <>
+            <button
+              onClick={handleTamperTest}
+              className="inline-flex items-center gap-2 rounded-[2px] bg-canvas border border-danger/40 px-4 py-2 text-sm font-medium text-danger transition-colors hover:bg-surface active:translate-y-px"
+            >
+              <FileWarning className="h-4 w-4" aria-hidden="true" />
+              Simulate Payload Tamper
+            </button>
+            <button
+              onClick={loadAuditData}
+              className="inline-flex items-center gap-2 rounded-[2px] bg-teal px-4 py-2 text-sm font-medium text-surface transition-colors hover:bg-teal-dark active:translate-y-px shadow-card"
+            >
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
+              Verify Audit Chain
+            </button>
+          </>
+        }
+      />
 
-      {/* Verification Status Card */}
-      <div className={`card-editorial p-6 rounded-lg border-2 ${
-        chainStatus?.status === 'VALID' ? 'border-teal bg-teal/5' : 'border-danger bg-danger-light'
-      }`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            {chainStatus?.status === 'VALID' ? (
-              <ShieldCheck className="w-8 h-8 text-teal" />
-            ) : (
-              <ShieldAlert className="w-8 h-8 text-danger" />
+      {/* Integrity status band */}
+      <div
+        className={cn(
+          'card-editorial rounded-sm overflow-hidden',
+          valid && 'border-teal/40',
+          corrupt && 'border-danger/40',
+        )}
+      >
+        <div className="flex items-start gap-4 p-6 md:p-7">
+          <span
+            className={cn(
+              'flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border',
+              valid && 'border-teal/30 bg-teal-light text-teal',
+              corrupt && 'border-danger/30 bg-danger-light text-danger',
+              !valid && !corrupt && 'border-border bg-canvas text-muted-ink',
             )}
-            <div>
-              <h2 className="text-xl font-serif font-bold text-ink">
-                Audit Chain Integrity: {chainStatus?.status === 'VALID' ? 'VALID & VERIFIED' : 'CORRUPTED RECORD DETECTED'}
-              </h2>
-              <p className="text-xs font-mono text-muted-ink">
-                {chainStatus?.status === 'VALID'
-                  ? `All ${chainStatus?.verified_events} events verified against SHA-256 previous hash link.`
-                  : `Tamper detected at event #${chainStatus?.corrupted_sequence}! Reason: ${chainStatus?.reason}`}
-              </p>
-            </div>
+          >
+            {valid ? (
+              <ShieldCheck className="h-6 w-6" aria-hidden="true" />
+            ) : corrupt ? (
+              <ShieldAlert className="h-6 w-6" aria-hidden="true" />
+            ) : (
+              <RefreshCw className="h-5 w-5 animate-spin" aria-hidden="true" />
+            )}
+          </span>
+          <div>
+            <h2 className="font-display text-xl font-semibold text-ink">
+              Audit Chain Integrity:{' '}
+              <span className={valid ? 'text-teal-dark' : corrupt ? 'text-danger' : 'text-muted-ink'}>
+                {valid ? 'Valid & Verified' : corrupt ? 'Corrupted Record Detected' : 'Verifying'}
+              </span>
+            </h2>
+            <p className="mt-1 font-mono text-xs text-muted-ink">
+              {valid
+                ? `All ${chainStatus?.verified_events} events verified against SHA-256 previous hash link.`
+                : corrupt
+                  ? `Tamper detected at event #${chainStatus?.corrupted_sequence}! Reason: ${chainStatus?.reason}`
+                  : 'Running SHA-256 hash-chain verification…'}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Audit Log Table */}
-      <div className="card-editorial rounded-lg overflow-hidden">
+      {/* Ledger table */}
+      <div className="card-editorial rounded-sm overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-muted-ink font-mono text-sm">Verifying audit chain...</div>
+          <LoadingState label="Verifying audit chain…" />
+        ) : events.length === 0 ? (
+          <EmptyState
+            icon={<ShieldCheck className="h-6 w-6" aria-hidden="true" />}
+            title="No audit events recorded."
+            description="Seed demo data or perform an agent action to append events to the chain."
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm border-collapse font-mono">
+              <caption className="sr-only">Chronological hash-chained audit events</caption>
               <thead>
-                <tr className="bg-canvas border-b border-border text-muted-ink text-xs uppercase tracking-wider">
-                  <th className="py-3.5 px-4 font-semibold">Seq #</th>
-                  <th className="py-3.5 px-4 font-semibold">Timestamp</th>
-                  <th className="py-3.5 px-4 font-semibold">Event Type</th>
-                  <th className="py-3.5 px-4 font-semibold">Actor / Entity</th>
-                  <th className="py-3.5 px-4 font-semibold">Current Hash (SHA-256)</th>
+                <tr className="bg-canvas border-b border-border">
+                  <th scope="col" className="py-3.5 px-4 kicker text-muted-ink font-semibold">Seq #</th>
+                  <th scope="col" className="py-3.5 px-4 kicker text-muted-ink font-semibold">Timestamp</th>
+                  <th scope="col" className="py-3.5 px-4 kicker text-muted-ink font-semibold">Event Type</th>
+                  <th scope="col" className="py-3.5 px-4 kicker text-muted-ink font-semibold">Actor / Entity</th>
+                  <th scope="col" className="py-3.5 px-4 kicker text-muted-ink font-semibold">Current Hash (SHA-256)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border text-xs">
                 {events.map((ev) => (
-                  <tr key={ev.sequence} className="hover:bg-canvas/50 transition-colors">
-                    <td className="py-3 px-4 font-bold text-ink">#{ev.sequence}</td>
+                  <tr key={ev.sequence} className="transition-colors hover:bg-canvas/60">
+                    <td className="py-3 px-4">
+                      <span className="inline-flex min-w-[2.25rem] items-center justify-center rounded-[2px] border border-border bg-canvas px-1.5 py-0.5 font-bold text-ink">
+                        #{ev.sequence}
+                      </span>
+                    </td>
                     <td className="py-3 px-4 text-muted-ink">{new Date(ev.created_at).toLocaleTimeString()}</td>
-                    <td className="py-3 px-4 font-bold text-teal-dark">{ev.event_type}</td>
+                    <td className="py-3 px-4 font-semibold text-teal-dark">{ev.event_type}</td>
                     <td className="py-3 px-4 text-muted-ink">{ev.actor}</td>
-                    <td className="py-3 px-4 font-mono text-ink text-[11px] truncate max-w-xs">{ev.current_hash}</td>
+                    <td className="max-w-xs truncate py-3 px-4 text-[11px] text-ink" title={ev.current_hash}>
+                      {ev.current_hash}
+                    </td>
                   </tr>
                 ))}
               </tbody>
