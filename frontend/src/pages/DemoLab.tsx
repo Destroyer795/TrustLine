@@ -162,7 +162,7 @@ export const DemoLab: React.FC = () => {
       <PageHeader
         kicker="Enforcement Test Rig"
         title="Judge Interactive Demo Lab"
-        description="Deterministic control panel to test credit limits, policy enforcement, failure escalation, and audit integrity."
+        description="Deterministic test rig for credit limits, policy enforcement, failure escalation, and audit integrity — a scripted 3-minute scenario, step by step."
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
