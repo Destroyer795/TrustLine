@@ -3,6 +3,19 @@ import { Agent, Principal, RiskProfile, DrawRequest, RepaymentSchedule, AuditEve
 const configuredBase = (import.meta.env.VITE_API_BASE_URL || '/api/v1').replace(/\/$/, '');
 const API_BASE = configuredBase.endsWith('/api/v1') ? configuredBase : `${configuredBase}/api/v1`;
 
+export class APIRequestError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly status: number,
+    public readonly details: Record<string, unknown> = {},
+    public readonly requestId?: string,
+  ) {
+    super(message);
+    this.name = 'APIRequestError';
+  }
+}
+
 async function fetchJSON<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
@@ -13,8 +26,14 @@ async function fetchJSON<T>(endpoint: string, options?: RequestInit): Promise<T>
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const details = data.error?.details ? ` (${JSON.stringify(data.error.details)})` : '';
-    throw new Error(`${data.error?.message || data.error?.code || `API request failed with HTTP ${res.status}`}${details}`);
+    const error = data.error || {};
+    throw new APIRequestError(
+      error.message || error.code || `API request failed with HTTP ${res.status}`,
+      error.code || `HTTP_${res.status}`,
+      res.status,
+      error.details || {},
+      error.request_id,
+    );
   }
   return data as T;
 }

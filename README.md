@@ -9,6 +9,81 @@
 
 ---
 
+## Product Tour
+
+### Complete route overview
+
+| Desktop · 1440×900 | Tablet · 1024×768 | Mobile · 390×844 |
+|---|---|---|
+| ![TrustLine desktop route overview](docs/screenshots/desktop-contact-sheet.png) | ![TrustLine tablet route overview](docs/screenshots/tablet-contact-sheet.png) | ![TrustLine mobile route overview](docs/screenshots/mobile-contact-sheet.png) |
+
+<details>
+<summary><strong>Open all route screenshots</strong></summary>
+
+### Judge overview
+
+| Desktop | Tablet | Mobile |
+|---|---|---|
+| ![Overview desktop](docs/screenshots/overview-desktop.png) | ![Overview tablet](docs/screenshots/overview-tablet.png) | ![Overview mobile](docs/screenshots/overview-mobile.png) |
+
+### Three-minute presentation mode
+
+| Desktop | Tablet | Mobile |
+|---|---|---|
+| ![Presentation desktop](docs/screenshots/presentation-desktop.png) | ![Presentation tablet](docs/screenshots/presentation-tablet.png) | ![Presentation mobile](docs/screenshots/presentation-mobile.png) |
+
+### Agent inventory
+
+| Desktop | Tablet | Mobile |
+|---|---|---|
+| ![Agent inventory desktop](docs/screenshots/agents-desktop.png) | ![Agent inventory tablet](docs/screenshots/agents-tablet.png) | ![Agent inventory mobile](docs/screenshots/agents-mobile.png) |
+
+### Agent registration
+
+| Desktop | Tablet | Mobile |
+|---|---|---|
+| ![Agent registration desktop](docs/screenshots/registration-desktop.png) | ![Agent registration tablet](docs/screenshots/registration-tablet.png) | ![Agent registration mobile](docs/screenshots/registration-mobile.png) |
+
+### Underwriting and authority detail
+
+| Desktop | Tablet | Mobile |
+|---|---|---|
+| ![Agent detail desktop](docs/screenshots/agent-detail-desktop.png) | ![Agent detail tablet](docs/screenshots/agent-detail-tablet.png) | ![Agent detail mobile](docs/screenshots/agent-detail-mobile.png) |
+
+### Live enforcement laboratory
+
+| Desktop | Tablet | Mobile |
+|---|---|---|
+| ![Demo Lab desktop](docs/screenshots/demo-desktop.png) | ![Demo Lab tablet](docs/screenshots/demo-tablet.png) | ![Demo Lab mobile](docs/screenshots/demo-mobile.png) |
+
+### Tamper-evident audit ledger
+
+| Desktop | Tablet | Mobile |
+|---|---|---|
+| ![Audit ledger desktop](docs/screenshots/audit-desktop.png) | ![Audit ledger tablet](docs/screenshots/audit-tablet.png) | ![Audit ledger mobile](docs/screenshots/audit-mobile.png) |
+
+### System readiness and limitations
+
+| Desktop | Tablet | Mobile |
+|---|---|---|
+| ![System readiness desktop](docs/screenshots/system-desktop.png) | ![System readiness tablet](docs/screenshots/system-tablet.png) | ![System readiness mobile](docs/screenshots/system-mobile.png) |
+
+</details>
+
+### How the demo agents work
+
+The seeded “bots” are agent records with mandates, limits, risk evidence, and authority state. They are not background processes continuously making purchases. A Demo Lab button sends one real request through the transaction gateway on behalf of the selected record.
+
+| Seeded agent | Purpose | Starting behavior |
+|---|---|---|
+| `ProcurementBot-Good` | Verified SaaS and cloud procurement | Normal authority with earned evidence and a larger limit |
+| `ArbitrageBot-Bad` | Demonstrates repayment failure | Frozen by the seeded failed-repayment outcome |
+| `DataScraper-New` | Demonstrates cold start | Normal authority with a bounded ₹2,000 starting line |
+
+Non-2xx responses are part of the proof. A `402 CREDIT_LIMIT_EXCEEDED` means the over-limit scenario succeeded. A `403 AGENT_FROZEN` means that agent was already frozen by an earlier scenario. Click **Reset demo** before running another state-changing proof. The Demo Lab now prevents that second request and explains the required reset in the interface.
+
+---
+
 ## Technical Problem Statement & Architecture Highlights
 
 1. **Cryptographic Identity & Principal Binding:** Agents operate under Ed25519-signed Capability Mandates issued by accountable principals (humans or registered entities). Every spend request presents a cryptographic mandate verification proof.
