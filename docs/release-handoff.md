@@ -1,6 +1,6 @@
 # TrustLine hackathon release handoff
 
-Last verified: 2026-08-01
+Last verified: 2026-08-02
 
 ## Three-minute judge sequence
 
@@ -35,7 +35,7 @@ Never place `SECRET_KEY`, `DATABASE_URL`, or `GEMINI_API_KEY` in Vercel.
 
 ## Verified release evidence
 
-- Backend: 12 tests passed. Gemini missing/error behavior resolves to a deterministic explanation.
+- Backend: 21 tests passed. Gemini missing/error behavior resolves to a deterministic explanation.
 - Frontend: TypeScript and Vite production build passed.
 - Local lifecycle: all eight smoke checks passed against SQLite and Docker/PostgreSQL.
 - Atomicity: two simultaneous ₹7,000 requests produced one HTTP 201 reservation and one HTTP 402 `CREDIT_LIMIT_EXCEEDED` rejection.

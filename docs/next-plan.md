@@ -7,7 +7,7 @@ The hackathon implementation is complete enough for a judged demo. The next work
 ## Before submission
 
 1. Deploy the existing Docker stack to the chosen judge-accessible host.
-2. Run the 11-test backend suite against the release commit.
+2. Run the 21-test backend suite against the release commit.
 3. Run `scripts/demo_smoke.py` against the deployed URL.
 4. Run `scripts/demo_concurrency.py` against PostgreSQL and save the terminal result for the demo.
 5. Rehearse the three-minute flow twice, including the direct over-limit API rejection.
