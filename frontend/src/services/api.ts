@@ -1,4 +1,4 @@
-import { Agent, Principal, RiskProfile, DrawRequest, RepaymentSchedule, AuditEvent } from '../types';
+import { Agent, Principal, RiskProfile, DrawRequest, RepaymentSchedule, AuditEvent, CreditLimitChange, TaskReceipt } from '../types';
 
 const API_BASE = '/api/v1';
 
@@ -33,6 +33,8 @@ export const api = {
   unfreezeAgent: (id: string, reason?: string) => fetchJSON<any>(`/agents/${id}/unfreeze`, { method: 'POST', body: JSON.stringify({ reason }) }),
   
   getRiskProfile: (agentId: string) => fetchJSON<RiskProfile>(`/agents/${agentId}/risk-profile`),
+  getLimitHistory: (agentId: string) => fetchJSON<CreditLimitChange[]>(`/agents/${agentId}/limit-history`),
+  getReceipts: (agentId: string) => fetchJSON<TaskReceipt[]>(`/agents/${agentId}/receipts`),
   recalculateRisk: (agentId: string) => fetchJSON<any>(`/agents/${agentId}/risk/recalculate`, { method: 'POST' }),
   
   createDraw: (data: { agent_id: string; amount: number; merchant_name: string; merchant_category: string; idempotency_key: string }) =>
