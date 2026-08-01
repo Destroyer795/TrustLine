@@ -4,8 +4,8 @@ from django.db import transaction, models
 from django.utils import timezone
 from backend.common.money import quantize_money
 from backend.common.errors import APIError
-from backend.apps.identity.models import Agent, CapabilityManifest, Mandate
-from backend.apps.identity.services import verify_mandate_integrity
+from backend.apps.identity.models import Agent, CapabilityManifest, Mandate, Principal
+from backend.apps.identity.services import compute_manifest_hash, verify_mandate_integrity
 from backend.apps.credit.models import CreditAccount
 from backend.apps.gateway.models import DrawRequest, DrawReservation, LedgerEntry, IdempotencyRecord
 from backend.apps.audit.services import append_audit_event
@@ -15,6 +15,8 @@ def process_draw_request(agent: Agent, amount: Decimal, merchant_name: str, merc
     15-step atomic check-and-reserve transaction executed inside PostgreSQL select_for_update lock.
     """
     amount = quantize_money(amount)
+    if amount <= Decimal('0.00'):
+        raise APIError("INVALID_AMOUNT", "Draw amount must be greater than zero.", status_code=400)
     request_hash = hashlib.sha256(f"{agent.id}:{amount}:{merchant_category}:{idempotency_key}".encode('utf-8')).hexdigest()
     
     # 4. Idempotency Check
@@ -33,7 +35,8 @@ def process_draw_request(agent: Agent, amount: Decimal, merchant_name: str, merc
 
         # 2 & 3. Row Lock select_for_update on credit account & principal
         account = CreditAccount.objects.select_for_update().get(agent=agent)
-        principal = agent.principal
+        # The principal lock serializes draws across every agent sharing the pool.
+        principal = Principal.objects.select_for_update().get(id=agent.principal_id)
         
         # 5. Mandate verification
         mandate = agent.current_mandate
@@ -41,9 +44,9 @@ def process_draw_request(agent: Agent, amount: Decimal, merchant_name: str, merc
             raise APIError("MANDATE_INVALID", "Mandate is missing, expired, revoked, or signature invalid.", status_code=403)
             
         # 6. Capability Manifest verification
-        manifest = agent.manifests.filter(manifest_version=mandate.manifest_hash and manifest_version_helper(mandate) or 1).order_by('-manifest_version').first()
-        if not manifest:
-            manifest = agent.manifests.order_by('-manifest_version').first()
+        manifest = agent.manifests.filter(manifest_version=mandate.version).first()
+        if not manifest or compute_manifest_hash(manifest) != mandate.manifest_hash:
+            raise APIError("MANIFEST_MISMATCH", "Active capability manifest does not match the signed mandate.", status_code=403)
 
         now = timezone.now()
         if manifest:
@@ -86,6 +89,17 @@ def process_draw_request(agent: Agent, amount: Decimal, merchant_name: str, merc
         total_principal_exposure = CreditAccount.objects.filter(agent__principal=principal).aggregate(
             total=models.Sum(models.F('reserved_amount') + models.F('outstanding_principal'))
         )['total'] or Decimal('0.00')
+        if total_principal_exposure + amount > principal.credit_pool_ceiling:
+            raise APIError(
+                "PRINCIPAL_POOL_EXCEEDED",
+                "Draw would exceed the principal-wide credit exposure ceiling.",
+                status_code=402,
+                details={
+                    "requested": str(amount),
+                    "principal_exposure": str(total_principal_exposure),
+                    "principal_pool_ceiling": str(principal.credit_pool_ceiling),
+                },
+            )
 
         # 13. Reserve Amount & Create Draw Request
         draw = DrawRequest.objects.create(
@@ -141,9 +155,6 @@ def process_draw_request(agent: Agent, amount: Decimal, merchant_name: str, merc
         )
 
         return draw
-
-def manifest_version_helper(mandate: Mandate) -> int:
-    return mandate.version
 
 def advance_draw_settlement(draw: DrawRequest) -> DrawRequest:
     """Transitions a reserved draw to SETTLED and creates repayment schedule."""

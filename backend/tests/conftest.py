@@ -1,3 +1,4 @@
+import os
 import pytest
 import secrets
 from decimal import Decimal

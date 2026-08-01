@@ -50,7 +50,13 @@ def principals_list_create(request):
         if not name or not email:
             raise APIError("VALIDATION_ERROR", "Name and email are required fields.")
         
-        principal, _ = Principal.objects.get_or_create(email=email, defaults={"name": name})
+        principal, _ = Principal.objects.get_or_create(
+            email=email,
+            defaults={
+                "name": name,
+                "credit_pool_ceiling": quantize_money(request.data.get("credit_pool_ceiling", 30000)),
+            },
+        )
         PrincipalVerification.objects.get_or_create(
             principal=principal,
             defaults={"provider": "MOCK_OAUTH", "provider_subject_id": f"sub_{secrets.token_hex(8)}", "verification_level": "VERIFIED_HIGH", "status": "VERIFIED"}
@@ -74,6 +80,7 @@ def principal_detail(request, pk):
         "id": str(p.id),
         "name": p.name,
         "email": p.email,
+        "credit_pool_ceiling": str(p.credit_pool_ceiling),
         "verification": getattr(p, 'verification', None) and {
             "level": p.verification.verification_level,
             "status": p.verification.status
@@ -124,6 +131,13 @@ def agents_list_create(request):
         purpose = request.data.get("purpose", "")
         ceiling = request.data.get("authorized_ceiling", 15000.0)
         floor = request.data.get("cold_start_floor", 2000.0)
+
+        ceiling = quantize_money(ceiling)
+        floor = quantize_money(floor)
+        if not display_name:
+            raise APIError("VALIDATION_ERROR", "display_name is required.")
+        if floor <= 0 or ceiling <= 0 or floor > ceiling:
+            raise APIError("VALIDATION_ERROR", "Credit floor and ceiling must be positive, and floor cannot exceed ceiling.")
         
         try:
             p = Principal.objects.get(id=principal_id)
@@ -151,10 +165,10 @@ def agents_list_create(request):
         mandate = create_and_sign_mandate(p, agent, acct, manifest, authorized_ceiling=ceiling)
         credit_acct = CreditAccount.objects.create(
             agent=agent,
-            current_credit_limit=quantize_money(floor),
-            target_credit_limit=quantize_money(floor),
-            cold_start_floor=quantize_money(floor),
-            principal_authorized_ceiling=quantize_money(ceiling)
+            current_credit_limit=floor,
+            target_credit_limit=floor,
+            cold_start_floor=floor,
+            principal_authorized_ceiling=ceiling
         )
 
         calculate_and_save_risk_profile(agent)

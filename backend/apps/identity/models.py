@@ -6,6 +6,7 @@ class Principal(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
+    credit_pool_ceiling = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('30000.00'))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
