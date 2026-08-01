@@ -7,7 +7,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'trustline-hackathon-super-secret-key-
 
 DEBUG = os.environ.get('DEBUG', 'false').lower() == 'true'
 
-ALLOWED_HOSTS = [host.strip() for host in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if host.strip()]
+ALLOWED_HOSTS = ['*'] if os.environ.get('ALLOWED_HOSTS') == '*' else [host.strip() for host in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,.onrender.com,*').split(',') if host.strip()]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -62,26 +62,39 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.config.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'trustline'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-    }
-}
 if os.environ.get('DATABASE_URL'):
     import dj_database_url
-    DATABASES['default'] = dj_database_url.config(conn_max_age=600, conn_health_checks=True)
-
-# Fallback to SQLite for local pytest if PostgreSQL is not available
-if os.environ.get('USE_SQLITE_TEST') == 'true':
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    DATABASES = {
+        'default': dj_database_url.config(conn_max_age=600, conn_health_checks=True)
     }
+elif os.environ.get('USE_SQLITE') == 'true' or os.environ.get('USE_SQLITE_TEST') == 'true':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+else:
+    db_host = os.environ.get('DB_HOST') or os.environ.get('POSTGRES_HOST')
+    if not db_host and (os.environ.get('RENDER') or os.environ.get('PORT')):
+        # Deployed on cloud platform without explicit Postgres host -> fallback to SQLite
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
+    else:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': os.environ.get('DB_NAME') or os.environ.get('POSTGRES_DB') or 'trustline',
+                'USER': os.environ.get('DB_USER') or os.environ.get('POSTGRES_USER') or 'postgres',
+                'PASSWORD': os.environ.get('DB_PASSWORD') or os.environ.get('POSTGRES_PASSWORD') or 'postgres',
+                'HOST': db_host or 'localhost',
+                'PORT': os.environ.get('DB_PORT') or os.environ.get('POSTGRES_PORT') or '5432',
+            }
+        }
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
