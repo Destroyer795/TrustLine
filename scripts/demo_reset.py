@@ -13,8 +13,11 @@ def run_reset():
     from backend.apps.repayment.models import RepaymentSchedule, RepaymentAttempt
     from backend.apps.monitoring.models import AuthorityStateTransition, Escalation
     from backend.apps.audit.models import AuditEvent
+    from backend.apps.demo.models import DemoSession, DemoStepResult
 
     # Delete all records
+    DemoStepResult.objects.all().delete()
+    DemoSession.objects.all().delete()
     RepaymentAttempt.objects.all().delete()
     RepaymentSchedule.objects.all().delete()
     LedgerEntry.objects.all().delete()

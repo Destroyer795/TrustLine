@@ -24,6 +24,9 @@ from backend.apps.monitoring.services import transition_authority_state
 from backend.apps.audit.models import AuditEvent
 from backend.apps.audit.services import verify_audit_chain, tamper_audit_log_for_demo, append_audit_event
 from backend.apps.demo.llm_explainer import generate_risk_explanation_narrative
+from backend.apps.demo.models import DemoSession
+from backend.apps.demo.services import advance_session, create_session, replay_session, scenario_catalog, serialize_session
+from backend.apps.demo.analytics import agent_analytics, portfolio_analytics, simulate_draw
 
 @api_view(['GET'])
 def health_check(request):
@@ -317,6 +320,38 @@ def agent_recalculate_risk(request, pk):
         snapshot = calculate_and_save_risk_profile(ag)
         return Response({"agent_id": str(ag.id), "score": str(snapshot.weighted_risk_score)})
 
+@api_view(['GET'])
+def analytics_portfolio(request):
+    return Response(portfolio_analytics())
+
+@api_view(['GET'])
+def analytics_agent(request, pk):
+    try:
+        agent = Agent.objects.select_related("principal", "credit_account").get(id=pk)
+    except Agent.DoesNotExist:
+        raise APIError("NOT_FOUND", "Agent not found.", status_code=404)
+    window = request.query_params.get("window", "30d")
+    if window not in ["7d", "30d", "all"]:
+        raise APIError("VALIDATION_ERROR", "window must be 7d, 30d, or all.")
+    return Response(agent_analytics(agent, window))
+
+@api_view(['POST'])
+def agent_simulate(request, pk):
+    try:
+        agent = Agent.objects.select_related("principal", "credit_account", "current_mandate").get(id=pk)
+    except Agent.DoesNotExist:
+        raise APIError("NOT_FOUND", "Agent not found.", status_code=404)
+    if request.data.get("amount") is None or not request.data.get("merchant_category"):
+        raise APIError("VALIDATION_ERROR", "amount and merchant_category are required.")
+    try:
+        amount = Decimal(str(request.data["amount"]))
+    except Exception:
+        raise APIError("VALIDATION_ERROR", "amount must be numeric.")
+    repayment_outcome = request.data.get("repayment_outcome", "SUCCESS")
+    if repayment_outcome not in ["SUCCESS", "FAIL"]:
+        raise APIError("VALIDATION_ERROR", "repayment_outcome must be SUCCESS or FAIL.")
+    return Response(simulate_draw(agent, amount, request.data["merchant_category"], repayment_outcome))
+
 # --- Gateway & Draws ---
 
 @api_view(['POST'])
@@ -460,3 +495,47 @@ def demo_status(request):
         "audit_events": AuditEvent.objects.count(),
         "audit_chain_valid": verify_audit_chain()["status"] == "VALID"
     })
+
+@api_view(['GET'])
+def demo_scenarios(request):
+    scenarios = scenario_catalog()
+    by_name = {agent.display_name: agent for agent in Agent.objects.select_related("credit_account").all()}
+    for scenario in scenarios:
+        agent = by_name.get(scenario["agent_name"])
+        scenario["agent"] = agent and {
+            "id": str(agent.id), "name": agent.display_name, "purpose": agent.purpose,
+            "authority": agent.status, "limit": str(agent.credit_account.current_credit_limit),
+            "available": str(agent.credit_account.available_credit),
+        }
+    return Response({"story": "Principal authorizes → TrustLine underwrites → Bot requests credit → Gateway checks authority → Vendor receives payment → Principal mandate repays → Outcome changes trust", "scenarios": scenarios})
+
+@api_view(['POST'])
+def demo_sessions_create(request):
+    if not request.data.get("scenario_key"):
+        raise APIError("VALIDATION_ERROR", "scenario_key is required.")
+    session = create_session(request.data["scenario_key"])
+    return Response(serialize_session(session), status=status.HTTP_201_CREATED)
+
+@api_view(['GET'])
+def demo_session_detail(request, pk):
+    try:
+        session = DemoSession.objects.prefetch_related("steps").get(id=pk)
+    except DemoSession.DoesNotExist:
+        raise APIError("NOT_FOUND", "Demo session not found.", status_code=404)
+    return Response(serialize_session(session))
+
+@api_view(['POST'])
+def demo_session_advance(request, pk):
+    try:
+        session = DemoSession.objects.get(id=pk)
+    except DemoSession.DoesNotExist:
+        raise APIError("NOT_FOUND", "Demo session not found.", status_code=404)
+    return Response(serialize_session(advance_session(session)))
+
+@api_view(['POST'])
+def demo_session_replay(request, pk):
+    try:
+        session = DemoSession.objects.get(id=pk)
+    except DemoSession.DoesNotExist:
+        raise APIError("NOT_FOUND", "Demo session not found.", status_code=404)
+    return Response(serialize_session(replay_session(session)))

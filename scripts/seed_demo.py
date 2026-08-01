@@ -23,8 +23,11 @@ def run_seed():
     from backend.apps.monitoring.models import AuthorityStateTransition, Escalation
     from backend.apps.monitoring.services import transition_authority_state
     from backend.apps.audit.models import AuditEvent
+    from backend.apps.demo.models import DemoSession, DemoStepResult
 
     # Clear existing demo objects if present
+    DemoStepResult.objects.all().delete()
+    DemoSession.objects.all().delete()
     RepaymentAttempt.objects.all().delete()
     RepaymentSchedule.objects.all().delete()
     LedgerEntry.objects.all().delete()
@@ -73,13 +76,13 @@ def run_seed():
     now = timezone.now()
 
     # -------------------------------------------------------------
-    # AGENT 1: GOOD AGENT (ProcurementBot-Good)
+    # AGENT 1: VERIFIED PERFORMER
     # -------------------------------------------------------------
     _, raw_good_key = generate_agent_api_key()
     good_agent, _ = Agent.objects.get_or_create(
         principal=principal,
-        display_name="ProcurementBot-Good",
-        defaults={"purpose": "Automated SaaS license and cloud API procurement agent", "api_key_hash": raw_good_key, "status": "NORMAL"}
+        display_name="Atlas Procurement Bot",
+        defaults={"purpose": "Authorized cloud infrastructure and software procurement", "api_key_hash": raw_good_key, "status": "NORMAL"}
     )
     manifest_good, _ = CapabilityManifest.objects.get_or_create(
         agent=good_agent,
@@ -128,13 +131,13 @@ def run_seed():
     update_credit_limit(credit_good, trigger="SEED_DATA", reason="Initial good agent seeding")
 
     # -------------------------------------------------------------
-    # AGENT 2: BAD AGENT (ArbitrageBot-Bad)
+    # AGENT 2: RISKY, BUT READY FOR AN INSPECTABLE FAILURE STORY
     # -------------------------------------------------------------
     _, raw_bad_key = generate_agent_api_key()
     bad_agent, _ = Agent.objects.get_or_create(
         principal=principal,
-        display_name="ArbitrageBot-Bad",
-        defaults={"purpose": "High-frequency task execution agent with irregular behavior", "api_key_hash": raw_bad_key, "status": "NORMAL"}
+        display_name="Vector Arbitrage Bot",
+        defaults={"purpose": "Price-discovery execution constrained to approved market-data APIs", "api_key_hash": raw_bad_key, "status": "NORMAL"}
     )
     manifest_bad, _ = CapabilityManifest.objects.get_or_create(
         agent=bad_agent,
@@ -159,21 +162,25 @@ def run_seed():
         }
     )
 
-    # Process failed repayment for Bad Agent to freeze line
-    draw_bad = process_draw_request(bad_agent, Decimal('2000.00'), "Unverified Vendor", "API_SERVICES", f"seed_idemp_bad_{secrets.token_hex(4)}")
-    advance_draw_settlement(draw_bad)
-    sched_bad = RepaymentSchedule.objects.filter(draw=draw_bad).first()
-    if sched_bad:
-        process_repayment_attempt(sched_bad, force_status="INSUFFICIENT_FUNDS")
+    # Seed weak task evidence without pre-freezing the bot. The demo failure remains
+    # executable and inspectable instead of beginning in an already-failed state.
+    for i, outcome in enumerate(["SUCCESS", "FAILED", "FAILED"], start=1):
+        task = Task.objects.create(agent=bad_agent, description=f"Market-data verification task #{i}", expected_value=Decimal('1000.00'))
+        TaskReceipt.objects.create(
+            issuer=issuer, task=task, agent=bad_agent, outcome=outcome,
+            value=Decimal('1000.00'), issued_at=now - timezone.timedelta(days=i * 3),
+            nonce=secrets.token_hex(16), ed25519_signature="demo_sig_valid"
+        )
+    calculate_and_save_risk_profile(bad_agent)
 
     # -------------------------------------------------------------
-    # AGENT 3: NEW AGENT (DataScraper-New)
+    # AGENT 3: COLD-START RESEARCH BOT
     # -------------------------------------------------------------
     _, raw_new_key = generate_agent_api_key()
     new_agent, _ = Agent.objects.get_or_create(
         principal=principal,
-        display_name="DataScraper-New",
-        defaults={"purpose": "Newly registered web scraping agent under cold-start policy", "api_key_hash": raw_new_key, "status": "NORMAL"}
+        display_name="Scout Research Bot",
+        defaults={"purpose": "Cold-start research agent purchasing bounded data and cloud access", "api_key_hash": raw_new_key, "status": "NORMAL"}
     )
     manifest_new, _ = CapabilityManifest.objects.get_or_create(
         agent=new_agent,
@@ -199,9 +206,54 @@ def run_seed():
     )
     calculate_and_save_risk_profile(new_agent)
 
+    # Deterministic 30-day evidence history for the analytics views. These records
+    # are explicitly identified as seeded demo evidence by the analytics API.
+    history = {
+        good_agent: [
+            (30, "58.00", "0.58", "0.50", "0.50", "0.62", "7000.00"),
+            (23, "63.00", "0.66", "0.58", "0.55", "0.68", "7600.00"),
+            (16, "69.00", "0.74", "0.66", "0.63", "0.73", "8300.00"),
+            (9, "75.00", "0.82", "0.74", "0.72", "0.80", "9000.00"),
+            (2, "81.00", "0.90", "0.84", "0.80", "0.86", "10000.00"),
+        ],
+        bad_agent: [
+            (30, "55.00", "0.62", "0.55", "0.50", "0.58", "5000.00"),
+            (23, "51.00", "0.55", "0.48", "0.50", "0.50", "4200.00"),
+            (16, "45.00", "0.45", "0.42", "0.50", "0.43", "3200.00"),
+            (9, "38.00", "0.34", "0.38", "0.50", "0.34", "2400.00"),
+            (2, "31.00", "0.24", "0.32", "0.50", "0.26", "2000.00"),
+        ],
+        new_agent: [
+            (30, "50.00", "0.50", "0.50", "0.50", "0.50", "2000.00"),
+            (16, "52.00", "0.54", "0.50", "0.52", "0.52", "2000.00"),
+            (2, "54.00", "0.58", "0.50", "0.56", "0.54", "2000.00"),
+        ],
+    }
+    for agent, points in history.items():
+        account = agent.credit_account
+        previous_limit = Decimal(points[0][6])
+        for days_ago, score, task_score, repayment, identity, regularity, limit in points:
+            snapshot = RiskProfileSnapshot.objects.create(
+                agent=agent, weighted_risk_score=Decimal(score),
+                identity_confidence=Decimal(identity), task_reliability=Decimal(task_score),
+                repayment_reliability=Decimal(repayment), spending_regularity=Decimal(regularity),
+                current_exposure_amount=Decimal('0.00'), current_exposure_utilization=Decimal('0.00'),
+                repayment_imputed=True, spending_imputed=True,
+            )
+            at = now - timezone.timedelta(days=days_ago)
+            RiskProfileSnapshot.objects.filter(id=snapshot.id).update(created_at=at)
+            new_limit = Decimal(limit)
+            change = CreditLimitChange.objects.create(
+                credit_account=account, previous_limit=previous_limit, target_limit=new_limit,
+                new_limit=new_limit, alpha=Decimal('0.15') if agent == good_agent else Decimal('0.65') if agent == bad_agent else Decimal('0.35'),
+                trigger="SEEDED_OUTCOME_HISTORY", reason="Deterministic 30-day demo evidence",
+            )
+            CreditLimitChange.objects.filter(id=change.id).update(created_at=at)
+            previous_limit = new_limit
+
     return {
         "status": "SUCCESS",
-        "message": "Seeded 1 Verified Principal, 1 Good Agent, 1 Bad Agent (Frozen), and 1 Cold-Start New Agent.",
+        "message": "Seeded Northstar and three deterministic demo bots with 30 days of evidence.",
         "good_agent_id": str(good_agent.id),
         "bad_agent_id": str(bad_agent.id),
         "new_agent_id": str(new_agent.id)

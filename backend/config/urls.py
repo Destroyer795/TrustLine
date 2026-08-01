@@ -12,6 +12,11 @@ urlpatterns = [
     path('api/v1/demo/seed', api_views.demo_seed),
     path('api/v1/demo/reset', api_views.demo_reset),
     path('api/v1/demo/status', api_views.demo_status),
+    path('api/v1/demo/scenarios', api_views.demo_scenarios),
+    path('api/v1/demo/sessions', api_views.demo_sessions_create),
+    path('api/v1/demo/sessions/<uuid:pk>', api_views.demo_session_detail),
+    path('api/v1/demo/sessions/<uuid:pk>/advance', api_views.demo_session_advance),
+    path('api/v1/demo/sessions/<uuid:pk>/replay', api_views.demo_session_replay),
     
     # Principals & Accounts
     path('api/v1/principals', api_views.principals_list_create),
@@ -28,6 +33,9 @@ urlpatterns = [
     # Risk & Credit
     path('api/v1/agents/<uuid:pk>/risk-profile', api_views.agent_risk_profile),
     path('api/v1/agents/<uuid:pk>/risk/recalculate', api_views.agent_recalculate_risk),
+    path('api/v1/analytics/portfolio', api_views.analytics_portfolio),
+    path('api/v1/agents/<uuid:pk>/analytics', api_views.analytics_agent),
+    path('api/v1/agents/<uuid:pk>/simulate', api_views.agent_simulate),
     
     # Draws & Gateway
     path('api/v1/draws', api_views.draws_create),
