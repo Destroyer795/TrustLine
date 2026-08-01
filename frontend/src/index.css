@@ -6,11 +6,19 @@
   body {
     background-color: #F4F0E6;
     color: #1E2726;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Geist Sans', sans-serif;
   }
   
   h1, h2, h3, .font-serif {
-    font-family: 'Fraunces', serif;
+    font-family: 'Geist Sans', sans-serif;
+    letter-spacing: -0.025em;
+  }
+}
+
+@layer base {
+  :focus-visible {
+    outline: 3px solid #2F6F68;
+    outline-offset: 3px;
   }
 }
 

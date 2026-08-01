@@ -28,8 +28,8 @@ export default {
         border: '#D8D1C3'
       },
       fontFamily: {
-        serif: ['"Fraunces"', '"Georgia"', 'serif'],
-        sans: ['"Inter"', 'sans-serif'],
+        serif: ['"Geist Sans"', 'sans-serif'],
+        sans: ['"Geist Sans"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace']
       }
     },

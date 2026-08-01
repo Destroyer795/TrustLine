@@ -12,7 +12,7 @@ import { SystemHealth } from './pages/SystemHealth';
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <div className="min-h-screen flex flex-col bg-canvas text-ink">
+      <div className="min-h-[100dvh] flex flex-col bg-canvas text-ink">
         <Navbar />
         <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
           <Routes>
@@ -26,7 +26,7 @@ export const App: React.FC = () => {
           </Routes>
         </main>
         <footer className="bg-surface border-t border-border py-6 mt-12  text-xs font-mono text-muted-ink">
-          TrustLine — Autonomous Agent Credit Infrastructure • 31-Hour FinTech Hackathon Build
+          TrustLine - Autonomous Agent Credit Infrastructure | 31-Hour FinTech Hackathon Build
         </footer>
       </div>
     </BrowserRouter>

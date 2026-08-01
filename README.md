@@ -15,7 +15,7 @@
 2. **Analytic Hierarchy Process (AHP) Underwriting:** Credit lines are underwritten using a multi-factor AHP pairwise comparison matrix ($CR = 0.0341 \le 0.10$) over 5 component factors (Identity Confidence, Task Reliability, Repayment Reliability, Spending Regularity, and Current Exposure).
 3. **Cold-Start Priors & Bounded Limit Dynamics:** New agents start with explicit `is_imputed` cold-start priors ($\text{TaskReliability}=0$). Limits interpolate boundedly between $\text{ColdStartFloor}$ (₹1,000) and $\text{AuthorizedCeiling}$. Trust updates follow asymmetric exponential moving averages ($\alpha_{\text{up}}=0.15, \alpha_{\text{down}}=0.65$).
 4. **Transaction Gateway Spend Isolation:** All spend requests execute outside the agent's LLM context via an isolated 15-step Transaction Gateway enforcing PostgreSQL `select_for_update()` row locking, merchant category policies, single transaction velocity limits, and daily velocity caps.
-5. **Programmatic Repayment & instant Line Freeze:** Settlement creates automated repayment schedules executed via simulated bank pulls. Debit failures trigger instant state transitions to `FROZEN` and generate security escalations.
+5. **Programmatic Repayment & Instant Line Freeze:** Settlement creates automated repayment schedules executed via simulated bank pulls. Debit failures trigger instant state transitions to `FROZEN` and generate security escalations.
 6. **Tamper-Evident SHA-256 Audit Ledger:** Every state transition, draw, repayment, and limit calculation is recorded into an append-only, SHA-256 hash-chained audit log ($Hash_N = \text{SHA256}(N + EventID + EventType + PayloadHash + Hash_{N-1})$).
 
 ---
@@ -131,6 +131,7 @@ python scripts/demo_concurrency.py http://localhost:8000
 - [Implementation Scope Classification](docs/scope-boundaries.md)
 - [Industry References & Protocol Comparison](docs/references.md)
 - [Execution Status Matrix](docs/execution-status.md)
+- [Next Plan of Action](docs/next-plan.md)
 
 ---
 

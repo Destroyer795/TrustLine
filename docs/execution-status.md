@@ -12,6 +12,7 @@ Last updated: 2026-08-01
 | | Capability Manifest Enforcement | `DEMO READY` | Merchant categories, daily & single limits verified |
 | | Ed25519 Mandate Signing & Verification | `DEMO READY` | Cryptographic signature payload verified |
 | | Principal Cold-Start Pool | `DEMO READY` | Principal-wide risk pooling enforced |
+| | Principal-Wide Exposure Ceiling | `DEMO READY` | Principal row lock plus combined exposure rejection verified |
 | **Risk & Underwriting** | 5 Risk Components Breakdown | `DEMO READY` | Identity, Task, Repayment, Spending, Exposure breakdown |
 | | AHP Weighting Matrix ($CR \le 0.10$) | `DEMO READY` | Pytest verified ($CR = 0.0341 \le 0.10$) |
 | | Task Reliability Cold-Start ($=0$) | `DEMO READY` | Verified non-imputed zero prior |
@@ -19,6 +20,8 @@ Last updated: 2026-08-01
 | **Credit Engine** | Bounded Credit Limit Formula | `DEMO READY` | Floor + (Score/100)*(Ceiling - Floor) verified |
 | | Asymmetric Trust Update ($\alpha_{\text{up}}=0.15, \alpha_{\text{down}}=0.65$) | `DEMO READY` | Fast drop, slow growth verified |
 | **Transaction Gateway** | 15-Step Atomic Check & Reserve | `DEMO READY` | PostgreSQL `select_for_update()` lock verified |
+| | Signed Manifest Binding | `DEMO READY` | Current manifest hash must match the signed mandate on every draw |
+| | Draw Amount Validation | `DEMO READY` | Zero and negative reservations are rejected before mutation |
 | | Idempotency Protection Header | `DEMO READY` | Header + DB uniqueness constraint verified |
 | | Staged In-Flight Draw Lifecycle | `DEMO READY` | Revoked in-flight test verified in Demo Lab |
 | **Repayment Enforcement** | Mandate-Bound Repayment Scheduler | `DEMO READY` | Automated pull schedule on draw settlement |
@@ -33,5 +36,10 @@ Last updated: 2026-08-01
 | | Audit Event Log Inspector | `DEMO READY` | Audit event feed and chain validator |
 | **Demo Automation** | Seed & Reset Scripts | `DEMO READY` | `scripts/seed_demo.py` & `scripts/demo_reset.py` verified |
 | | Concurrency Race Script | `DEMO READY` | `scripts/demo_concurrency.py` PASSED |
-| | Automated Smoke Test Suite | `DEMO READY` | `scripts/demo_smoke.py` PASSED |
+| | Automated Test Suite | `DEMO READY` | 11 backend tests passed on 2026-08-01 |
+| | Automated Smoke Test Suite | `DEMO READY` | All 8 lifecycle checks passed on 2026-08-01 |
 | | Docker Compose Environment | `DEMO READY` | Containerized runtime configured |
+
+## Readiness boundary
+
+`DEMO READY` means the hackathon paths are implemented and locally verified. It does not mean production-ready. Before real-money use, TrustLine still needs production principal authentication, a real OAuth/KYC provider, a real payment rail, managed secrets, rate limiting, worker-based scheduling, observability, and an independent receipt issuer.
