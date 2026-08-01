@@ -249,6 +249,16 @@ def agent_unfreeze(request, pk):
     transition = transition_authority_state(ag, next_state="NORMAL", trigger_code="MANUAL_UNFREEZE", reason=reason, actor_type="PRINCIPAL", actor_id=str(ag.principal.id))
     return Response({"agent_id": str(ag.id), "status": ag.status, "reason": reason})
 
+@api_view(['POST'])
+def agent_restrict(request, pk):
+    try:
+        ag = Agent.objects.get(id=pk)
+    except Agent.DoesNotExist:
+        raise APIError("NOT_FOUND", "Agent not found.", status_code=404)
+    reason = request.data.get("reason", "Irregular spend pattern crossed the restriction threshold.")
+    transition_authority_state(ag, next_state="RESTRICTED", trigger_code="SPEND_ANOMALY", reason=reason, actor_type="SYSTEM")
+    return Response({"agent_id": str(ag.id), "status": ag.status, "reason": reason})
+
 # --- Risk & Credit ---
 
 @api_view(['GET'])

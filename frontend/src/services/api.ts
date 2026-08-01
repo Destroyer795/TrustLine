@@ -31,6 +31,7 @@ export const api = {
   createAgent: (data: any) => fetchJSON<Agent>('/agents', { method: 'POST', body: JSON.stringify(data) }),
   freezeAgent: (id: string, reason?: string) => fetchJSON<any>(`/agents/${id}/freeze`, { method: 'POST', body: JSON.stringify({ reason }) }),
   unfreezeAgent: (id: string, reason?: string) => fetchJSON<any>(`/agents/${id}/unfreeze`, { method: 'POST', body: JSON.stringify({ reason }) }),
+  restrictAgent: (id: string, reason?: string) => fetchJSON<any>(`/agents/${id}/restrict`, { method: 'POST', body: JSON.stringify({ reason }) }),
   
   getRiskProfile: (agentId: string) => fetchJSON<RiskProfile>(`/agents/${agentId}/risk-profile`),
   recalculateRisk: (agentId: string) => fetchJSON<any>(`/agents/${agentId}/risk/recalculate`, { method: 'POST' }),

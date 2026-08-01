@@ -23,6 +23,7 @@ urlpatterns = [
     path('api/v1/agents/<uuid:pk>', api_views.agent_detail),
     path('api/v1/agents/<uuid:pk>/freeze', api_views.agent_freeze),
     path('api/v1/agents/<uuid:pk>/unfreeze', api_views.agent_unfreeze),
+    path('api/v1/agents/<uuid:pk>/restrict', api_views.agent_restrict),
     
     # Risk & Credit
     path('api/v1/agents/<uuid:pk>/risk-profile', api_views.agent_risk_profile),
