@@ -4,7 +4,7 @@
 
 # TrustLine
 
-*Autonomous credit infrastructure. Automatic. Instant. Zero paperwork.*
+*Autonomous credit infrastructure for AI Agents. Automatic. Instant. Zero paperwork.*
 
 <br/>
 <img src="docs/screenshots/trustline-logo.png" width="220" alt="TrustLine Brand Logo" style="border-radius: 12px;" />
@@ -24,17 +24,38 @@
 ![](https://img.shields.io/badge/PYTEST-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)
 ![](https://img.shields.io/badge/GEMINI_AI-8E75B2?style=for-the-badge&logo=google-gemini&logoColor=white)
 
-<h3><a href="#">Demo Video</a> | <a href="#">Pitch Deck</a></h3>
+<h3>
+  <a href="#quickstart">Quickstart</a> &nbsp;•&nbsp; 
+  <a href="#architecture-highlights">Architecture</a> &nbsp;•&nbsp; 
+  <a href="#risk-methodology--underwriting-math">Risk Math</a> &nbsp;•&nbsp; 
+  <a href="#verification--testing-suite">Verification</a> &nbsp;•&nbsp; 
+  <a href="#product-tour">Product Tour</a>
+</h3>
 
 </div>
 
-> **Round 2 Update:** This submission addresses reviewer feedback on credit risk methodology and autonomous agent accountability. Standard cryptographic identity verifications (Ed25519) are now formally integrated with principal-bound mandates. The underwriting model has been upgraded from a conceptual heuristic to a full Analytic Hierarchy Process (AHP) framework with quantitative inputs, dynamic limits, and automated repayment triggers.
+> **Round 2 Submission Update:** This release addresses reviewer feedback on autonomous agent risk governance and credit line adequacy. Cryptographic identity verification (Ed25519) is now directly coupled with principal-bound capability mandates. The risk engine features a full Analytic Hierarchy Process (AHP) matrix ($CR \le 0.10$), asymmetric trust score EMAs ($\alpha_{\text{up}}=0.15, \alpha_{\text{down}}=0.65$), row-level PostgreSQL transaction isolation (`SELECT FOR UPDATE`), and append-only SHA-256 hash-chained audit logging.
 >
-> **Architecture & Compliance Audit:** A comprehensive audit was conducted against autonomous spending guidelines. Key enhancements: transaction gateway spend isolation (`select_for_update`), bounded limit dynamics with asymmetric EMA, programmable repayment schedules, instant line freezes on failure, tamper-evident SHA-256 audit ledger, Ed25519 Capability Mandates, explicit cold-start priors, multi-factor AHP pairwise comparison matrix, and strict separation between the agent's LLM context and the execution gateway.
+> **Architecture & Security Audit:** Audited against standard autonomous spending vector guidelines. Core guarantees: 15-step transaction gateway spend isolation outside LLM context, explicit cold-start floor bounds, automated repayment debit pulls with zero-latency line freezes on failure, and full idempotency protection.
 
-<br/>
+---
 
-**TrustLine** is an autonomous credit infrastructure built specifically for AI agents. Autonomous agents lack independent legal identity, bank accounts, collateral, and contractual accountability. TrustLine solves this by establishing a cryptographic, risk-underwritten bridge extending temporary, bounded credit lines directly to autonomous agents under principal-bound mandates.
+## Executive Summary
+
+**TrustLine** is an autonomous credit infrastructure engineered for AI agents. Autonomous AI agents lack legal identity, bank accounts, collateral, and contractual standing. TrustLine solves this fundamental challenge by acting as a cryptographic, risk-underwritten gateway that extends temporary, bounded credit lines directly to AI agents under principal-bound mandates.
+
+```
++------------------+      Ed25519 Mandate     +----------------------+      AHP Underwrite      +------------------------+
+| Human Principal  |  -------------------->  | Autonomous AI Agent  |  -------------------->  | TrustLine Gateway      |
+| (Accountable)    |                         | (Bounded Execution)  |                         | (PostgreSQL Row Lock)  |
++------------------+                         +----------------------+                         +------------------------+
+                                                                                                          |
+                                                                                                          v
+                                                                                              +------------------------+
+                                                                                              | SHA-256 Audit Ledger   |
+                                                                                              | & Bank Repayment Pull  |
+                                                                                              +------------------------+
+```
 
 [![Build & Test](https://img.shields.io/badge/pytest-passing-brightgreen.svg)](docs/execution-status.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-0%20errors-blue.svg)](docs/execution-status.md)
@@ -43,89 +64,143 @@
 
 ---
 
+## Architecture Highlights
+
+```mermaid
+graph TD
+    subgraph Principal Boundary
+        P["Principal / Enterprise"] -->|Configures Policy| MANIFEST["Capability Manifest"]
+        P -->|Signs with Ed25519| MANDATE["Signed Capability Mandate"]
+    end
+
+    subgraph Agent Execution Context
+        A["Autonomous AI Agent"] -->|Presents API Key & Mandate Proof| GATEWAY["15-Step Transaction Gateway"]
+    end
+
+    subgraph TrustLine Core Engine
+        MANDATE -->|Verify Signature| GATEWAY
+        MANIFEST -->|Policy & Velocity Check| GATEWAY
+        
+        GATEWAY -->|1. Row Lock SELECT FOR UPDATE| DB[("PostgreSQL Database")]
+        GATEWAY -->|2. Underwrite & Limit Check| CE["Credit Decision Engine"]
+        
+        RE["Risk Engine (NumPy Matrix)"] -->|Calculates AHP Vector| CE
+        TR["Task Receipt Verification"] -->|Updates Reliability| RE
+        
+        CE -->|Computes Limit & EMA| DB
+        GATEWAY -->|3. Reserves Credit Line| RES["Draw Reservation"]
+        
+        RES -->|Settles Transaction| REPAY["Repayment Scheduler"]
+        REPAY -->|Mandate Debit Pull| BANK["Simulated Bank Adapter"]
+        
+        BANK -->|Success / Failure| SM["Authority State Machine"]
+        SM -->|NORMAL / RESTRICTED / FROZEN| DB
+        
+        GATEWAY -->|Append Event| AUDIT["SHA-256 Hash-Chained Audit Ledger"]
+    end
+```
+
+### Core Architecture Principles
+
+1. **Cryptographic Identity & Principal Binding:** AI Agents execute under Ed25519-signed Capability Mandates issued by accountable human principals or verified entities.
+2. **AHP Multi-Factor Underwriting:** Underwriting evaluates 5 weighted components (Identity Confidence, Task Reliability, Repayment Reliability, Spending Regularity, and Exposure) using Eigenvector pairwise comparison matrices ($CR = 0.0341 \le 0.10$).
+3. **Cold-Start Priors & Asymmetric EMA Adjustments:** Cold-start agents begin with conservative priors ($\text{TaskReliability}=0$) bounded between $\text{ColdStartFloor}$ (₹1,000) and $\text{AuthorizedCeiling}$. Trust updates respond asymmetrically ($\alpha_{\text{up}}=0.15, \alpha_{\text{down}}=0.65$).
+4. **Transaction Gateway Isolation:** Spend requests execute strictly outside the agent's LLM context via an isolated 15-step transaction gateway with PostgreSQL `SELECT FOR UPDATE` pessimistic row locking.
+5. **Automated Repayment & Zero-Latency Line Freeze:** Automated debit pulls settle outstanding draws. Repayment failures immediately trigger `FROZEN` authority status.
+6. **SHA-256 Append-Only Audit Chain:** Every transaction, draw, repayment, and state transition is hashed into an append-only audit ledger ($Hash_N = \text{SHA256}(N \parallel \text{EventID} \parallel \text{PayloadHash} \parallel Hash_{N-1})$).
+
+---
+
+## Risk Methodology & Underwriting Math
+
+TrustLine's risk decision engine implements mathematical formulations to compute credit limits and verify stability:
+
+### 1. Analytic Hierarchy Process (AHP) Pairwise Consistency Ratio
+$$CR = \frac{CI}{RI} \le 0.10 \quad \text{where} \quad CI = \frac{\lambda_{\max} - n}{n - 1}$$
+For our 5-factor matrix, $n = 5, RI = 1.12$, yielding a verified consistency ratio of $CR = 0.0341$.
+
+### 2. Bounded Credit Limit Interpolation
+$$L_{\text{target}} = L_{\text{min}} + S \cdot (L_{\text{max}} - L_{\text{min}})$$
+where $S \in [0, 1]$ represents the overall normalized AHP composite risk score.
+
+### 3. Asymmetric Trust Moving Average
+$$T_n = \alpha \cdot R_n + (1 - \alpha) \cdot T_{n-1}$$
+- **Positive Behavior (Timely Repayment / Completed Task):** $\alpha_{\text{up}} = 0.15$
+- **Negative Behavior (Default / Failed Repayment):** $\alpha_{\text{down}} = 0.65$
+
+### 4. SHA-256 Audit Hash Chaining
+$$H_N = \text{SHA-256}\left( N \mathbin{\Vert} \text{EventID} \mathbin{\Vert} \text{PayloadHash} \mathbin{\Vert} H_{N-1} \right)$$
+
+---
+
 ## Product Tour
 
-### Complete route overview
+### Complete Route Overview
 
 | Desktop · 1440×900 | Tablet · 1024×768 | Mobile · 390×844 |
 |---|---|---|
 | ![TrustLine desktop route overview](docs/screenshots/desktop-contact-sheet.png) | ![TrustLine tablet route overview](docs/screenshots/tablet-contact-sheet.png) | ![TrustLine mobile route overview](docs/screenshots/mobile-contact-sheet.png) |
 
 <details>
-<summary><strong>Open all route screenshots</strong></summary>
+<summary><strong>View All Detailed Interface Views</strong></summary>
 
-### Judge overview
-
+### Judge Overview
 | Desktop | Tablet | Mobile |
 |---|---|---|
 | ![Overview desktop](docs/screenshots/overview-desktop.png) | ![Overview tablet](docs/screenshots/overview-tablet.png) | ![Overview mobile](docs/screenshots/overview-mobile.png) |
 
-### Three-minute presentation mode
-
+### Three-Minute Presentation Mode
 | Desktop | Tablet | Mobile |
 |---|---|---|
 | ![Presentation desktop](docs/screenshots/presentation-desktop.png) | ![Presentation tablet](docs/screenshots/presentation-tablet.png) | ![Presentation mobile](docs/screenshots/presentation-mobile.png) |
 
-### Agent inventory
-
+### Agent Inventory
 | Desktop | Tablet | Mobile |
 |---|---|---|
 | ![Agent inventory desktop](docs/screenshots/agents-desktop.png) | ![Agent inventory tablet](docs/screenshots/agents-tablet.png) | ![Agent inventory mobile](docs/screenshots/agents-mobile.png) |
 
-### Agent registration
-
+### Agent Registration
 | Desktop | Tablet | Mobile |
 |---|---|---|
 | ![Agent registration desktop](docs/screenshots/registration-desktop.png) | ![Agent registration tablet](docs/screenshots/registration-tablet.png) | ![Agent registration mobile](docs/screenshots/registration-mobile.png) |
 
-### Underwriting and authority detail
-
+### Underwriting & Authority Detail
 | Desktop | Tablet | Mobile |
 |---|---|---|
 | ![Agent detail desktop](docs/screenshots/agent-detail-desktop.png) | ![Agent detail tablet](docs/screenshots/agent-detail-tablet.png) | ![Agent detail mobile](docs/screenshots/agent-detail-mobile.png) |
 
-### Live enforcement laboratory
-
+### Live Enforcement Laboratory
 | Desktop | Tablet | Mobile |
 |---|---|---|
 | ![Demo Lab desktop](docs/screenshots/demo-desktop.png) | ![Demo Lab tablet](docs/screenshots/demo-tablet.png) | ![Demo Lab mobile](docs/screenshots/demo-mobile.png) |
 
-### Tamper-evident audit ledger
-
+### Tamper-Evident Audit Ledger
 | Desktop | Tablet | Mobile |
 |---|---|---|
 | ![Audit ledger desktop](docs/screenshots/audit-desktop.png) | ![Audit ledger tablet](docs/screenshots/audit-tablet.png) | ![Audit ledger mobile](docs/screenshots/audit-mobile.png) |
 
-### System readiness and limitations
-
+### System Readiness & Limitations
 | Desktop | Tablet | Mobile |
 |---|---|---|
 | ![System readiness desktop](docs/screenshots/system-desktop.png) | ![System readiness tablet](docs/screenshots/system-tablet.png) | ![System readiness mobile](docs/screenshots/system-mobile.png) |
 
 </details>
 
-### How the demo agents work
-
-The seeded “bots” are agent records with mandates, limits, risk evidence, and authority state. They are not background processes continuously making purchases. A Demo Lab button sends one real request through the transaction gateway on behalf of the selected record.
-
-| Seeded agent | Purpose | Starting behavior |
-|---|---|---|
-| `ProcurementBot-Good` | Verified SaaS and cloud procurement | Normal authority with earned evidence and a larger limit |
-| `ArbitrageBot-Bad` | Demonstrates repayment failure | Frozen by the seeded failed-repayment outcome |
-| `DataScraper-New` | Demonstrates cold start | Normal authority with a bounded ₹2,000 starting line |
-
-Non-2xx responses are part of the proof. A `402 CREDIT_LIMIT_EXCEEDED` means the over-limit scenario succeeded. A `403 AGENT_FROZEN` means that agent was already frozen by an earlier scenario. Click **Reset demo** before running another state-changing proof. The Demo Lab now prevents that second request and explains the required reset in the interface.
-
 ---
 
-## Technical Problem Statement & Architecture Highlights
+## How the Demo Agents Work
 
-1. **Cryptographic Identity & Principal Binding:** Agents operate under Ed25519-signed Capability Mandates issued by accountable principals (humans or registered entities). Every spend request presents a cryptographic mandate verification proof.
-2. **Analytic Hierarchy Process (AHP) Underwriting:** Credit lines are underwritten using a multi-factor AHP pairwise comparison matrix ($CR = 0.0341 \le 0.10$) over 5 component factors (Identity Confidence, Task Reliability, Repayment Reliability, Spending Regularity, and Current Exposure).
-3. **Cold-Start Priors & Bounded Limit Dynamics:** New agents start with explicit `is_imputed` cold-start priors ($\text{TaskReliability}=0$). Limits interpolate boundedly between $\text{ColdStartFloor}$ (₹1,000) and $\text{AuthorizedCeiling}$. Trust updates follow asymmetric exponential moving averages ($\alpha_{\text{up}}=0.15, \alpha_{\text{down}}=0.65$).
-4. **Transaction Gateway Spend Isolation:** All spend requests execute outside the agent's LLM context via an isolated 15-step Transaction Gateway enforcing PostgreSQL `select_for_update()` row locking, merchant category policies, single transaction velocity limits, and daily velocity caps.
-5. **Programmatic Repayment & Instant Line Freeze:** Settlement creates automated repayment schedules executed via simulated bank pulls. Debit failures trigger instant state transitions to `FROZEN` and generate security escalations.
-6. **Tamper-Evident SHA-256 Audit Ledger:** Every state transition, draw, repayment, and limit calculation is recorded into an append-only, SHA-256 hash-chained audit log ($Hash_N = \text{SHA256}(N + EventID + EventType + PayloadHash + Hash_{N-1})$).
+The seeded agents are pre-configured records with active mandates, risk scores, and authority states designed for live verification:
+
+| Seeded Agent | Purpose & Scenario | Starting Behavior & Authority State |
+|---|---|---|
+| `ProcurementBot-Good` | High-trust agent for cloud procurement | Active authority with earned trust history and higher credit limit |
+| `ArbitrageBot-Bad` | Demonstrates repayment default handling | Instantly `FROZEN` due to seeded repayment failure |
+| `DataScraper-New` | Demonstrates cold-start underwriting | Active authority with a conservative ₹2,000 initial limit |
+
+> **Note on Responses:** Non-2xx responses demonstrate active policy enforcement:
+> - `402 CREDIT_LIMIT_EXCEEDED`: Over-limit spending attempts are rejected.
+> - `403 AGENT_FROZEN`: Frozen agents are blocked from issuing draws.
 
 ---
 
@@ -133,7 +208,7 @@ Non-2xx responses are part of the proof. A `402 CREDIT_LIMIT_EXCEEDED` means the
 
 ```text
 TrustLine/
-├── backend/                  # Django REST Modular Monolith
+├── backend/                  # Django REST Modular Monolith Architecture
 │   ├── apps/
 │   │   ├── identity/         # Principals, Agents, Ed25519 Mandates
 │   │   ├── risk/             # AHP Underwriting & Task Receipts
@@ -144,7 +219,7 @@ TrustLine/
 │   │   ├── audit/            # SHA-256 Hash-Chained Audit Ledger
 │   │   └── demo/             # Judge Demo Lab & LLM Explainer
 │   └── config/               # DRF API routing & settings
-├── frontend/                 # Mid-Century Modern Control Console (React + Vite + Tailwind)
+├── frontend/                 # Control Console (React 18 + Vite + TypeScript + Tailwind)
 │   ├── src/
 │   │   ├── pages/            # Overview, Agents, DemoLab, Audit, Health
 │   │   └── components/       # UI Components & Data Visualizers
@@ -160,10 +235,8 @@ TrustLine/
 │   ├── seed_demo.py          # Deterministic Demo Database Seeder
 │   ├── demo_smoke.py         # End-to-End Smoke Test Suite
 │   └── demo_concurrency.py   # Parallel Thread Race Condition Proof
-├── docker-compose.yml        # Production-disciplined Docker Compose Stack
-├── .env.example              # Environment Configuration Template
-├── .gitignore                # Version Control Exclusions
-├── Makefile                  # Local Development Shorthands
+├── docker-compose.yml        # Multi-Container Production Docker Stack
+├── Makefile                  # Automated Shorthands & Tasks
 └── README.md                 # Project Overview & Quickstart Guide
 ```
 
@@ -173,7 +246,7 @@ TrustLine/
 
 ### Option 1: Docker Desktop (Recommended)
 
-1. **Start the Stack:**
+1. **Launch Stack:**
    ```bash
    docker compose up --build -d
    ```
@@ -181,9 +254,9 @@ TrustLine/
    ```bash
    docker compose exec backend python scripts/seed_demo.py
    ```
-3. **Access Interfaces:**
-   - **Frontend Dashboard:** [http://localhost:3000](http://localhost:3000)
-   - **Backend API:** [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health)
+3. **Access Endpoints:**
+   - **Frontend Console:** [http://localhost:3000](http://localhost:3000)
+   - **Backend API Health:** [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health)
    - **PostgreSQL Database:** `localhost:5433` (`trustline` / `postgres`)
 
 ### Option 2: Local Python & Node Environment
@@ -191,8 +264,8 @@ TrustLine/
 1. **Backend Setup:**
    ```bash
    pip install -r backend/requirements.txt
-   $env:PYTHONPATH="."
-   $env:USE_SQLITE_TEST="true"
+   export PYTHONPATH="."
+   export USE_SQLITE_TEST="true"
    python backend/manage.py migrate
    python scripts/seed_demo.py
    python backend/manage.py runserver 0.0.0.0:8000
@@ -224,7 +297,7 @@ python scripts/demo_smoke.py http://localhost:3000
 ```
 
 ### 3. PostgreSQL Concurrency Race Proof
-Fires simultaneous parallel threads attempting to overspend a credit line, proving PostgreSQL `select_for_update()` double-spend prevention:
+Fires simultaneous parallel threads attempting to overspend a credit line, proving PostgreSQL `SELECT FOR UPDATE` double-spend prevention:
 ```bash
 python scripts/demo_concurrency.py http://localhost:8000
 ```
@@ -233,14 +306,16 @@ python scripts/demo_concurrency.py http://localhost:8000
 
 ## Documentation Index
 
-- [Architecture & Diagrams](docs/architecture.md)
-- [AHP Underwriting Risk Methodology](docs/risk-methodology.md)
-- [Security Threat Model](docs/threat-model.md)
-- [Architectural Decision Records (ADRs)](docs/decisions.md)
-- [Implementation Scope Classification](docs/scope-boundaries.md)
-- [Industry References & Protocol Comparison](docs/references.md)
-- [Execution Status Matrix](docs/execution-status.md)
-- [Next Plan of Action](docs/next-plan.md)
+| Topic | Document Link | Description |
+|---|---|---|
+| **Architecture & Diagrams** | [architecture.md](docs/architecture.md) | Component, Sequence, State, and ER Diagrams |
+| **Risk Methodology** | [risk-methodology.md](docs/risk-methodology.md) | AHP Eigenvectors, Consistency Ratios, EMA formulas |
+| **Threat Model** | [threat-model.md](docs/threat-model.md) | Security mitigations & attack vector analysis |
+| **Architecture Decisions** | [decisions.md](docs/decisions.md) | ADRs 001 through 006 |
+| **Scope & Boundaries** | [scope-boundaries.md](docs/scope-boundaries.md) | In-scope vs Out-of-scope boundaries |
+| **Industry References** | [references.md](docs/references.md) | Industry citations (Google AP2, Visa Trusted Agent) |
+| **Execution Status** | [execution-status.md](docs/execution-status.md) | Test coverage and readiness matrix |
+| **Next Plan of Action** | [next-plan.md](docs/next-plan.md) | Roadmap for upcoming features |
 
 ---
 
