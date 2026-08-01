@@ -25,7 +25,7 @@ export const App: React.FC = () => {
             <Route path="/system" element={<SystemHealth />} />
           </Routes>
         </main>
-        <footer className="bg-surface border-t border-border py-6 mt-12 text-center text-xs font-mono text-muted-ink">
+        <footer className="bg-surface border-t border-border py-6 mt-12  text-xs font-mono text-muted-ink">
           TrustLine — Autonomous Agent Credit Infrastructure • 31-Hour FinTech Hackathon Build
         </footer>
       </div>

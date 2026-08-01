@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, ArrowRight, Zap, Scale, Lock, RefreshCw } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Lightning, Scales, Lock, ArrowsClockwise } from '@phosphor-icons/react';
 import { api } from '../services/api';
 
 export const Overview: React.FC = () => {
@@ -68,7 +68,7 @@ export const Overview: React.FC = () => {
 
         <div className="card-editorial p-6 rounded-lg space-y-3">
           <div className="w-10 h-10 rounded bg-warning/10 text-warning flex items-center justify-center font-serif font-bold">
-            <Scale className="w-5 h-5" />
+            <Scales className="w-5 h-5" />
           </div>
           <h3 className="font-serif font-bold text-xl text-ink">AHP Policy Priors & Asymmetric Limits</h3>
           <p className="text-sm text-muted-ink leading-relaxed">
@@ -78,7 +78,7 @@ export const Overview: React.FC = () => {
 
         <div className="card-editorial p-6 rounded-lg space-y-3">
           <div className="w-10 h-10 rounded bg-olive/10 text-olive flex items-center justify-center font-serif font-bold">
-            <Zap className="w-5 h-5" />
+            <Lightning className="w-5 h-5" />
           </div>
           <h3 className="font-serif font-bold text-xl text-ink">Outside-Agent Enforcement</h3>
           <p className="text-sm text-muted-ink leading-relaxed">
@@ -98,7 +98,7 @@ export const Overview: React.FC = () => {
             onClick={loadStats}
             className="px-3 py-1.5 bg-canvas border border-border text-xs font-medium rounded hover:bg-surface transition-colors flex items-center space-x-1"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <ArrowsClockwise className="w-3.5 h-3.5" />
             <span>Refresh</span>
           </button>
         </div>

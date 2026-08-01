@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, ShieldAlert, Zap, RefreshCw, CheckCircle, AlertTriangle, Scale, Lock } from 'lucide-react';
+import { Play, ShieldWarning, Lightning, ArrowsClockwise, CheckCircle, Warning, Scales, Lock } from '@phosphor-icons/react';
 import { api } from '../services/api';
 import { Agent } from '../types';
 
@@ -197,7 +197,7 @@ export const DemoLab: React.FC = () => {
                 disabled={loading}
                 className="w-full py-2 bg-teal text-surface font-medium text-xs rounded hover:bg-teal-dark transition-colors flex items-center justify-center space-x-1"
               >
-                <Zap className="w-4 h-4" />
+                <Lightning className="w-4 h-4" />
                 <span>Test Gateway Draw Request</span>
               </button>
             </div>
@@ -220,7 +220,7 @@ export const DemoLab: React.FC = () => {
               disabled={loading}
               className="w-full py-2 bg-canvas border border-border text-ink text-xs font-medium rounded hover:bg-surface transition-colors text-left px-3 flex items-center space-x-2"
             >
-              <ShieldAlert className="w-4 h-4 text-danger" />
+              <ShieldWarning className="w-4 h-4 text-danger" />
               <span>2. Force Repayment Failure & Line Freeze</span>
             </button>
 
@@ -229,7 +229,7 @@ export const DemoLab: React.FC = () => {
               disabled={loading}
               className="w-full py-2 bg-canvas border border-border text-ink text-xs font-medium rounded hover:bg-surface transition-colors text-left px-3 flex items-center space-x-2"
             >
-              <Scale className="w-4 h-4 text-olive" />
+              <Scales className="w-4 h-4 text-olive" />
               <span>3. Test Audit Log Tamper Detection</span>
             </button>
 
@@ -238,7 +238,7 @@ export const DemoLab: React.FC = () => {
               disabled={loading}
               className="w-full py-2 bg-canvas border border-border text-muted-ink text-xs font-medium rounded hover:bg-surface transition-colors text-left px-3 flex items-center space-x-2"
             >
-              <RefreshCw className="w-4 h-4" />
+              <ArrowsClockwise className="w-4 h-4" />
               <span>Reset & Re-Seed Clean Demo State</span>
             </button>
           </div>
@@ -259,7 +259,7 @@ export const DemoLab: React.FC = () => {
 
             <div className="flex-1 bg-ink text-canvas font-mono text-xs p-4 rounded-md overflow-y-auto space-y-2 min-h-[400px] max-h-[600px] selection:bg-teal selection:text-surface">
               {logOutput.length === 0 ? (
-                <div className="text-muted-ink text-center pt-20">
+                <div className="text-muted-ink  pt-20">
                   Ready. Click any enforcement scenario to view real-time gateway events...
                 </div>
               ) : (

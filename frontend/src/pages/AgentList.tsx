@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, ArrowRight, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Plus, ArrowRight, ArrowsClockwise, Warning } from '@phosphor-icons/react';
 import { Agent } from '../types';
 import { api } from '../services/api';
 import { StatusBadge } from '../components/StatusBadge';
@@ -37,7 +37,7 @@ export const AgentList: React.FC = () => {
             onClick={loadAgents}
             className="px-3 py-2 bg-canvas border border-border text-sm font-medium rounded hover:bg-surface transition-colors flex items-center space-x-1"
           >
-            <RefreshCw className="w-4 h-4 text-muted-ink" />
+            <ArrowsClockwise className="w-4 h-4 text-muted-ink" />
             <span>Refresh</span>
           </button>
           <Link
@@ -52,10 +52,10 @@ export const AgentList: React.FC = () => {
 
       <div className="card-editorial rounded-lg overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-muted-ink font-mono text-sm">Loading agents inventory...</div>
+          <div className="p-12  text-muted-ink font-mono text-sm">Loading agents inventory...</div>
         ) : agents.length === 0 ? (
-          <div className="p-12 text-center space-y-3">
-            <AlertTriangle className="w-8 h-8 text-warning mx-auto" />
+          <div className="p-12  space-y-3">
+            <Warning className="w-8 h-8 text-warning mx-auto" />
             <p className="text-ink font-medium">No agents found in inventory.</p>
             <p className="text-xs text-muted-ink">Seed demo data or register a new agent to begin.</p>
           </div>
@@ -70,7 +70,7 @@ export const AgentList: React.FC = () => {
                   <th className="py-3.5 px-4 font-semibold text-right">Credit Limit</th>
                   <th className="py-3.5 px-4 font-semibold text-right">Available</th>
                   <th className="py-3.5 px-4 font-semibold text-right">Outstanding</th>
-                  <th className="py-3.5 px-4 font-semibold text-center">Action</th>
+                  <th className="py-3.5 px-4 font-semibold ">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -91,7 +91,7 @@ export const AgentList: React.FC = () => {
                     <td className="py-4 px-4 font-mono text-right font-medium text-ink">₹{parseFloat(ag.current_limit || '0').toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                     <td className="py-4 px-4 font-mono text-right font-semibold text-teal-dark">₹{parseFloat(ag.available_credit || '0').toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                     <td className="py-4 px-4 font-mono text-right text-muted-ink">₹{parseFloat(ag.outstanding_principal || '0').toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    <td className="py-4 px-4 text-center">
+                    <td className="py-4 px-4 ">
                       <Link
                         to={`/agents/${ag.id}`}
                         className="px-3 py-1.5 bg-canvas border border-border text-xs font-medium rounded hover:bg-surface transition-colors inline-flex items-center space-x-1 text-ink"

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Database, Server, RefreshCw, CheckCircle } from 'lucide-react';
+import { Heartbeat, Database, HardDrives, ArrowsClockwise, CheckCircle } from '@phosphor-icons/react';
 import { api } from '../services/api';
 
 export const SystemHealth: React.FC = () => {
@@ -38,7 +38,7 @@ export const SystemHealth: React.FC = () => {
           onClick={loadHealth}
           className="px-4 py-2 bg-teal text-surface text-sm font-medium rounded hover:bg-teal-dark transition-colors flex items-center space-x-2 shadow-sm"
         >
-          <RefreshCw className="w-4 h-4" />
+          <ArrowsClockwise className="w-4 h-4" />
           <span>Refresh Health</span>
         </button>
       </div>
@@ -46,7 +46,7 @@ export const SystemHealth: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="card-editorial p-6 rounded-lg space-y-3">
           <div className="w-10 h-10 rounded bg-teal/10 text-teal flex items-center justify-center font-serif font-bold">
-            <Server className="w-5 h-5" />
+            <HardDrives className="w-5 h-5" />
           </div>
           <h3 className="font-serif font-bold text-lg text-ink">Backend Service API</h3>
           <span className="inline-flex items-center text-xs font-mono font-bold text-teal">
@@ -70,7 +70,7 @@ export const SystemHealth: React.FC = () => {
 
         <div className="card-editorial p-6 rounded-lg space-y-3">
           <div className="w-10 h-10 rounded bg-warning/10 text-warning flex items-center justify-center font-serif font-bold">
-            <Activity className="w-5 h-5" />
+            <Heartbeat className="w-5 h-5" />
           </div>
           <h3 className="font-serif font-bold text-lg text-ink">LLM Explainer Boundary</h3>
           <span className="inline-flex items-center text-xs font-mono font-bold text-teal">

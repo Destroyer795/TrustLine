@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Lock, CheckCircle, Key } from 'lucide-react';
+import { ShieldCheck, Lock, CheckCircle, Key } from '@phosphor-icons/react';
 import { api } from '../services/api';
 import { Principal } from '../types';
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ShieldCheck, Lock, Unlock, RefreshCw, AlertOctagon, Sparkles, Scale } from 'lucide-react';
+import { ShieldCheck, Lock, LockOpen, ArrowsClockwise, WarningOctagon, Sparkle, Scales } from '@phosphor-icons/react';
 import { Agent, RiskProfile, RepaymentSchedule } from '../types';
 import { api } from '../services/api';
 import { StatusBadge, ImputedBadge } from '../components/StatusBadge';
@@ -67,7 +67,7 @@ export const AgentDetail: React.FC = () => {
   };
 
   if (loading || !agent) {
-    return <div className="p-12 text-center text-muted-ink font-mono text-sm">Loading agent credit profile...</div>;
+    return <div className="p-12  text-muted-ink font-mono text-sm">Loading agent credit profile...</div>;
   }
 
   const ca = agent.credit_account;
@@ -93,7 +93,7 @@ export const AgentDetail: React.FC = () => {
             disabled={actionLoading}
             className="px-3 py-2 bg-canvas border border-border text-xs font-medium rounded hover:bg-surface transition-colors flex items-center space-x-1 text-ink"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <ArrowsClockwise className="w-3.5 h-3.5" />
             <span>Recalculate Risk</span>
           </button>
 
@@ -106,7 +106,7 @@ export const AgentDetail: React.FC = () => {
                 : 'bg-danger text-surface hover:bg-danger/90'
             }`}
           >
-            {agent.status === 'FROZEN' ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+            {agent.status === 'FROZEN' ? <LockOpen className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
             <span>{agent.status === 'FROZEN' ? 'Unfreeze Agent Line' : 'Emergency Freeze Line'}</span>
           </button>
         </div>
@@ -143,7 +143,7 @@ export const AgentDetail: React.FC = () => {
       {risk?.explanation && (
         <div className="card-editorial p-6 rounded-lg bg-surface border-teal/30 space-y-2">
           <div className="flex items-center space-x-2 text-teal font-serif font-bold">
-            <Sparkles className="w-5 h-5" />
+            <Sparkle className="w-5 h-5" />
             <span>Underwriting Narrative ({risk.explanation.source})</span>
           </div>
           <p className="text-sm text-ink leading-relaxed font-sans">
@@ -160,7 +160,7 @@ export const AgentDetail: React.FC = () => {
             <p className="text-xs font-mono text-muted-ink mt-1">Weighted Risk Score: {risk?.weighted_risk_score}/100 • AHP Version v1.0</p>
           </div>
           <div className="flex items-center space-x-2">
-            <Scale className="w-4 h-4 text-teal" />
+            <Scales className="w-4 h-4 text-teal" />
             <span className="text-xs font-mono text-muted-ink">CR ≤ 0.10 Verified</span>
           </div>
         </div>

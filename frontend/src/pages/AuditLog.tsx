@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ShieldCheck, ShieldAlert, RefreshCw, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, ShieldWarning, ArrowsClockwise, Warning } from '@phosphor-icons/react';
 import { AuditEvent } from '../types';
 import { api } from '../services/api';
 
@@ -51,7 +51,7 @@ export const AuditLog: React.FC = () => {
             onClick={loadAuditData}
             className="px-4 py-2 bg-teal text-surface text-sm font-medium rounded hover:bg-teal-dark transition-colors flex items-center space-x-2 shadow-sm"
           >
-            <RefreshCw className="w-4 h-4" />
+            <ArrowsClockwise className="w-4 h-4" />
             <span>Verify Audit Chain</span>
           </button>
         </div>
@@ -66,7 +66,7 @@ export const AuditLog: React.FC = () => {
             {chainStatus?.status === 'VALID' ? (
               <ShieldCheck className="w-8 h-8 text-teal" />
             ) : (
-              <ShieldAlert className="w-8 h-8 text-danger" />
+              <ShieldWarning className="w-8 h-8 text-danger" />
             )}
             <div>
               <h2 className="text-xl font-serif font-bold text-ink">
@@ -85,7 +85,7 @@ export const AuditLog: React.FC = () => {
       {/* Audit Log Table */}
       <div className="card-editorial rounded-lg overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-muted-ink font-mono text-sm">Verifying audit chain...</div>
+          <div className="p-12  text-muted-ink font-mono text-sm">Verifying audit chain...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm border-collapse font-mono">

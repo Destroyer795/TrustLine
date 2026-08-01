@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShieldCheck, Cpu, Terminal, Activity, RefreshCw } from 'lucide-react';
+import { ShieldCheck, Cpu, Terminal, Heartbeat, ArrowsClockwise } from '@phosphor-icons/react';
 import { api } from '../services/api';
 
 export const Navbar: React.FC = () => {
@@ -77,7 +77,7 @@ export const Navbar: React.FC = () => {
             title="Refresh Audit Integrity"
             className="p-1.5 text-muted-ink hover:text-ink rounded hover:bg-canvas transition-colors"
           >
-            <RefreshCw className="w-4 h-4" />
+            <ArrowsClockwise className="w-4 h-4" />
           </button>
         </div>
       </div>
