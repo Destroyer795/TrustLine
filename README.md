@@ -1,6 +1,6 @@
 <div align="center">
 
-![](https://img.shields.io/badge/DEVTRAILS%20GUIDEWIRE%20HACKATHON-FFD700?style=for-the-badge)
+![](https://img.shields.io/badge/INNOVA%20HACKATHON-900C3F?style=for-the-badge)
 
 # TrustLine
 
@@ -61,6 +61,33 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-0%20errors-blue.svg)](docs/execution-status.md)
 [![Docker Stack](https://img.shields.io/badge/Docker-3%20containers%20ready-blue.svg)](docker-compose.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+---
+
+## Backend Module Architecture Table
+
+| Django App | Underlying DB Models | Core Algorithms & Safeguards |
+|:---|:---|:---|
+| **`identity`** | `Principal`, `Agent`, `Mandate` | Ed25519 Cryptographic Signature Verification & Principal Binding |
+| **`risk`** | `TaskReceipt`, `RiskAssessment`, `AHPWeight` | Analytic Hierarchy Process (AHP) Pairwise Eigenvector Matrix ($CR \le 0.10$) |
+| **`credit`** | `CreditAccount`, `LimitHistory` | Cold-Start Floor Bounds & Asymmetric Trust Score EMA ($\alpha_{\text{up}}=0.15, \alpha_{\text{down}}=0.65$) |
+| **`gateway`** | `DrawRequest`, `DrawReservation` | 15-Step Spend Gateway with PostgreSQL `SELECT FOR UPDATE` Pessimistic Row Locking |
+| **`repayment`** | `RepaymentSchedule`, `RepaymentAttempt` | Automated Mandate Debit Pulls & Simulated Bank Adapter Settlement |
+| **`monitoring`** | `AuthorityStateTransition`, `Escalation` | Finite State Machine (`NORMAL`, `RESTRICTED`, `FROZEN`) & Security Escalations |
+| **`audit`** | `AuditEvent` | Append-Only SHA-256 Hash-Chained Audit Ledger ($Hash_N = \text{SHA256}(N \parallel \dots \parallel Hash_{N-1})$) |
+| **`demo`** | `DemoScenarioState` | Deterministic Database Seeder & Judge LLM Explainer Gateway |
+
+---
+
+## Seeded Agent Test Matrix Table
+
+| Seeded Agent | Target Scenario | Starting Credit Line | Authority State | Expected HTTP Result |
+|:---|:---|:---|:---|:---|
+| **`ProcurementBot-Good`** | Verified SaaS & Cloud Procurement | ₹15,000 | `NORMAL` | `201 CREATED` |
+| **`ArbitrageBot-Bad`** | Repayment Failure & Default Handling | ₹0 (Frozen) | `FROZEN` | `403 AGENT_FROZEN` |
+| **`DataScraper-New`** | Cold-Start Underwriting & Over-Limit Protection | ₹2,000 | `NORMAL` | `402 CREDIT_LIMIT_EXCEEDED` *(when draw > ₹2,000)* |
+
+> **Verification Tip:** Non-2xx HTTP responses are part of the cryptographic proof. A `402 CREDIT_LIMIT_EXCEEDED` response confirms that over-limit policy checks succeeded, while a `403 AGENT_FROZEN` response confirms zero-latency line isolation.
 
 ---
 
@@ -138,7 +165,7 @@ $$H_N = \text{SHA-256}\left( N \mathbin{\Vert} \text{EventID} \mathbin{\Vert} \t
 ### Complete Route Overview
 
 | Desktop · 1440×900 | Tablet · 1024×768 | Mobile · 390×844 |
-|---|---|---|
+|:---|:---|:---|
 | ![TrustLine desktop route overview](docs/screenshots/desktop-contact-sheet.png) | ![TrustLine tablet route overview](docs/screenshots/tablet-contact-sheet.png) | ![TrustLine mobile route overview](docs/screenshots/mobile-contact-sheet.png) |
 
 <details>
@@ -146,61 +173,45 @@ $$H_N = \text{SHA-256}\left( N \mathbin{\Vert} \text{EventID} \mathbin{\Vert} \t
 
 ### Judge Overview
 | Desktop | Tablet | Mobile |
-|---|---|---|
+|:---|:---|:---|
 | ![Overview desktop](docs/screenshots/overview-desktop.png) | ![Overview tablet](docs/screenshots/overview-tablet.png) | ![Overview mobile](docs/screenshots/overview-mobile.png) |
 
 ### Three-Minute Presentation Mode
 | Desktop | Tablet | Mobile |
-|---|---|---|
+|:---|:---|:---|
 | ![Presentation desktop](docs/screenshots/presentation-desktop.png) | ![Presentation tablet](docs/screenshots/presentation-tablet.png) | ![Presentation mobile](docs/screenshots/presentation-mobile.png) |
 
 ### Agent Inventory
 | Desktop | Tablet | Mobile |
-|---|---|---|
+|:---|:---|:---|
 | ![Agent inventory desktop](docs/screenshots/agents-desktop.png) | ![Agent inventory tablet](docs/screenshots/agents-tablet.png) | ![Agent inventory mobile](docs/screenshots/agents-mobile.png) |
 
 ### Agent Registration
 | Desktop | Tablet | Mobile |
-|---|---|---|
+|:---|:---|:---|
 | ![Agent registration desktop](docs/screenshots/registration-desktop.png) | ![Agent registration tablet](docs/screenshots/registration-tablet.png) | ![Agent registration mobile](docs/screenshots/registration-mobile.png) |
 
 ### Underwriting & Authority Detail
 | Desktop | Tablet | Mobile |
-|---|---|---|
+|:---|:---|:---|
 | ![Agent detail desktop](docs/screenshots/agent-detail-desktop.png) | ![Agent detail tablet](docs/screenshots/agent-detail-tablet.png) | ![Agent detail mobile](docs/screenshots/agent-detail-mobile.png) |
 
 ### Live Enforcement Laboratory
 | Desktop | Tablet | Mobile |
-|---|---|---|
+|:---|:---|:---|
 | ![Demo Lab desktop](docs/screenshots/demo-desktop.png) | ![Demo Lab tablet](docs/screenshots/demo-tablet.png) | ![Demo Lab mobile](docs/screenshots/demo-mobile.png) |
 
 ### Tamper-Evident Audit Ledger
 | Desktop | Tablet | Mobile |
-|---|---|---|
+|:---|:---|:---|
 | ![Audit ledger desktop](docs/screenshots/audit-desktop.png) | ![Audit ledger tablet](docs/screenshots/audit-tablet.png) | ![Audit ledger mobile](docs/screenshots/audit-mobile.png) |
 
 ### System Readiness & Limitations
 | Desktop | Tablet | Mobile |
-|---|---|---|
+|:---|:---|:---|
 | ![System readiness desktop](docs/screenshots/system-desktop.png) | ![System readiness tablet](docs/screenshots/system-tablet.png) | ![System readiness mobile](docs/screenshots/system-mobile.png) |
 
 </details>
-
----
-
-## How the Demo Agents Work
-
-The seeded agents are pre-configured records with active mandates, risk scores, and authority states designed for live verification:
-
-| Seeded Agent | Purpose & Scenario | Starting Behavior & Authority State |
-|---|---|---|
-| `ProcurementBot-Good` | High-trust agent for cloud procurement | Active authority with earned trust history and higher credit limit |
-| `ArbitrageBot-Bad` | Demonstrates repayment default handling | Instantly `FROZEN` due to seeded repayment failure |
-| `DataScraper-New` | Demonstrates cold-start underwriting | Active authority with a conservative ₹2,000 initial limit |
-
-> **Note on Responses:** Non-2xx responses demonstrate active policy enforcement:
-> - `402 CREDIT_LIMIT_EXCEEDED`: Over-limit spending attempts are rejected.
-> - `403 AGENT_FROZEN`: Frozen agents are blocked from issuing draws.
 
 ---
 
@@ -307,7 +318,7 @@ python scripts/demo_concurrency.py http://localhost:8000
 ## Documentation Index
 
 | Topic | Document Link | Description |
-|---|---|---|
+|:---|:---|:---|
 | **Architecture & Diagrams** | [architecture.md](docs/architecture.md) | Component, Sequence, State, and ER Diagrams |
 | **Risk Methodology** | [risk-methodology.md](docs/risk-methodology.md) | AHP Eigenvectors, Consistency Ratios, EMA formulas |
 | **Threat Model** | [threat-model.md](docs/threat-model.md) | Security mitigations & attack vector analysis |
