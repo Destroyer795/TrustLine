@@ -64,3 +64,10 @@ Thumbs.db
 
 # Docker volumes / local data
 pgdata/
+
+# AI / Agent IDE
+.agents/
+.claude/
+.remember/
+skills-lock.json
+package-lock.json
