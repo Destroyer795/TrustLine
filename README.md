@@ -1,11 +1,38 @@
-# TrustLine — Autonomous Agent Credit Infrastructure
+<div align="center">
+
+![](https://img.shields.io/badge/DEVTRAILS%20GUIDEWIRE%20HACKATHON-FFD700?style=for-the-badge)
+
+# TrustLine
+
+*Your agent's credit line. Cryptographic. Bounded. Principal-bound.*
+
+<br/>
+<img src="docs/screenshots/desktop-contact-sheet.png" width="600" />
+<br/><br/>
+
+![](https://img.shields.io/badge/REACT-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![](https://img.shields.io/badge/TYPESCRIPT-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![](https://img.shields.io/badge/PYTHON-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![](https://img.shields.io/badge/DJANGO-092E20?style=for-the-badge&logo=django&logoColor=white)
+![](https://img.shields.io/badge/POSTGRESQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
+![](https://img.shields.io/badge/DOCKER-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+
+<h3><a href="#">Demo Video</a> | <a href="#">Pitch Deck</a></h3>
+
+</div>
+
+> **Round 2 Update:** This submission addresses reviewer feedback on credit risk methodology and autonomous agent accountability. Standard cryptographic identity verifications (Ed25519) are now formally integrated with principal-bound mandates. The underwriting model has been upgraded from a conceptual heuristic to a full Analytic Hierarchy Process (AHP) framework with quantitative inputs, dynamic limits, and automated repayment triggers.
+>
+> **Architecture & Compliance Audit:** A comprehensive audit was conducted against autonomous spending guidelines. Key enhancements: transaction gateway spend isolation (`select_for_update`), bounded limit dynamics with asymmetric EMA, programmable repayment schedules, instant line freezes on failure, tamper-evident SHA-256 audit ledger, Ed25519 Capability Mandates, explicit cold-start priors, multi-factor AHP pairwise comparison matrix, and strict separation between the agent's LLM context and the execution gateway.
+
+<br/>
+
+**TrustLine** is an autonomous credit infrastructure built specifically for AI agents. Autonomous agents lack independent legal identity, bank accounts, collateral, and contractual accountability. TrustLine solves this by establishing a cryptographic, risk-underwritten bridge extending temporary, bounded credit lines directly to autonomous agents under principal-bound mandates.
 
 [![Build & Test](https://img.shields.io/badge/pytest-passing-brightgreen.svg)](docs/execution-status.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-0%20errors-blue.svg)](docs/execution-status.md)
 [![Docker Stack](https://img.shields.io/badge/Docker-3%20containers%20ready-blue.svg)](docker-compose.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-**TrustLine** is an autonomous credit infrastructure built specifically for AI agents. Autonomous agents lack independent legal identity, bank accounts, collateral, and contractual accountability. TrustLine solves this by establishing a cryptographic, risk-underwritten bridge extending temporary, bounded credit lines directly to autonomous agents under principal-bound mandates.
 
 ---
 
