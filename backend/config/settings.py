@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -74,6 +73,7 @@ DATABASES = {
     }
 }
 if os.environ.get('DATABASE_URL'):
+    import dj_database_url
     DATABASES['default'] = dj_database_url.config(conn_max_age=600, conn_health_checks=True)
 
 # Fallback to SQLite for local pytest if PostgreSQL is not available

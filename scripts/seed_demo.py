@@ -54,7 +54,7 @@ def run_seed():
     )
     PrincipalVerification.objects.get_or_create(
         principal=principal,
-        defaults={"provider": "MOCK_ENTERPRISE_OAUTH", "provider_subject_id": "acme_ent_sub_9988", "verification_level": "VERIFIED_HIGH", "status": "VERIFIED"}
+        defaults={"provider": "MOCK_ENTERPRISE_OAUTH", "provider_subject_id": "northstar_ent_sub_9988", "verification_level": "VERIFIED_HIGH", "status": "VERIFIED"}
     )
     linked_account, _ = LinkedAccount.objects.get_or_create(
         principal=principal,

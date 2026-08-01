@@ -1,14 +1,15 @@
-import os
 import sys
 import threading
 import time
 import requests
-from decimal import Decimal
 
 def test_concurrency_race(base_url: str = "http://localhost:8000"):
     """
-    Fires two simultaneous draw requests of ₹6,000 each against a ₹10,000 credit limit.
+    Fires two simultaneous draw requests against the seeded good agent.
     Verifies that PostgreSQL select_for_update prevents double reservation.
+
+    This proof intentionally uses only the public API so it can run unchanged
+    against local Docker, Render, or another deployed backend.
     """
     print("=== STARTING CONCURRENCY RACE CONDITION PROOF ===")
     
@@ -19,23 +20,14 @@ def test_concurrency_race(base_url: str = "http://localhost:8000"):
         return False
         
     seed_data = reset_resp.json()
-    new_agent_id = seed_data["new_agent_id"]
-
-    # Increase new agent limit to ₹6,000 for test (single tx cap is ₹5,000)
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.config.settings')
-    import django
-    django.setup()
-    from backend.apps.credit.models import CreditAccount
-    acct = CreditAccount.objects.get(agent_id=new_agent_id)
-    acct.current_credit_limit = Decimal('6000.00')
-    acct.save()
+    agent_id = seed_data["good_agent_id"]
 
     results = []
 
     def make_draw(draw_index: int):
         payload = {
-            "agent_id": new_agent_id,
-            "amount": 4000.0,
+            "agent_id": agent_id,
+            "amount": 7000.0,
             "merchant_name": f"Concurrent Vendor #{draw_index}",
             "merchant_category": "CLOUD_SERVICES",
             "idempotency_key": f"race_key_thread_{draw_index}_{time.time()}"

@@ -30,15 +30,17 @@ Last updated: 2026-08-01
 | **Monitoring & Audit** | Authority State Machine | `DEMO READY` | `NORMAL`, `RESTRICTED`, `FROZEN`, `HUMAN_REVIEW` |
 | | SHA-256 Hash-Chained Audit Log | `DEMO READY` | Monotonic sequence, canonical JSON digest |
 | | Chain Verification & Tamper Detection | `DEMO READY` | Audit integrity verification endpoint & script verified |
-| **Frontend & UX** | Mid-Century Modern Design Token System | `DEMO READY` | Custom CSS tokens & Tailwind setup built |
-| | Agent Overview & Detail Views | `DEMO READY` | Imputed score badges, earned score display |
-| | Demo Lab & Interactive Console | `DEMO READY` | Judge controls, concurrency & freeze triggers |
-| | Audit Event Log Inspector | `DEMO READY` | Audit event feed and chain validator |
+| **Frontend & UX** | Editorial Mid-Century Design System | `DEMO READY` | Self-hosted Newsreader, Geist, and JetBrains Mono; double-bezel surfaces; semantic tokens |
+| | Judge Overview & Presentation Mode | `DEMO READY` | Live evidence overview plus five keyboard-operable presentation scenes |
+| | Agent Overview & Detail Views | `DEMO READY` | Principal binding, bounded-credit instrument, five visible evidence components |
+| | Demo Lab & Interactive Console | `DEMO READY` | Four inspectable enforcement scenarios with structured evidence |
+| | Audit Event Log Inspector | `DEMO READY` | Responsive ledger, chain relationship, copy controls, tamper confirmation |
 | **Demo Automation** | Seed & Reset Scripts | `DEMO READY` | `scripts/seed_demo.py` & `scripts/demo_reset.py` verified |
 | | Concurrency Race Script | `DEMO READY` | `scripts/demo_concurrency.py` PASSED |
-| | Automated Test Suite | `DEMO READY` | 11 backend tests passed on 2026-08-01 |
+| | Automated Test Suite | `DEMO READY` | 12 backend tests passed on 2026-08-01 |
 | | Automated Smoke Test Suite | `DEMO READY` | All 8 lifecycle checks passed on 2026-08-01 |
-| | Docker Compose Environment | `DEMO READY` | Containerized runtime configured |
+| | PostgreSQL Concurrency Proof | `DEMO READY` | One of two concurrent ₹7,000 reservations accepted; one rejected atomically |
+| | Docker Compose Environment | `DEMO READY` | PostgreSQL backend lifecycle and concurrency paths verified |
 
 ## Readiness boundary
 
