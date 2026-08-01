@@ -186,6 +186,7 @@ erDiagram
         decimal current_credit_limit
         decimal target_credit_limit
         decimal cold_start_floor
+        decimal principal_authorized_ceiling
         decimal reserved_amount
         decimal outstanding_principal
     }
