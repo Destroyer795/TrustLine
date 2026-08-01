@@ -127,14 +127,16 @@ graph TD
     end
 ```
 
-### Core Architecture Principles
+### Core Architecture Principles Table
 
-1. **Cryptographic Identity & Principal Binding:** AI Agents execute under Ed25519-signed Capability Mandates issued by accountable human principals or verified entities.
-2. **AHP Multi-Factor Underwriting:** Underwriting evaluates 5 weighted components (Identity Confidence, Task Reliability, Repayment Reliability, Spending Regularity, and Exposure) using Eigenvector pairwise comparison matrices ($CR = 0.0341 \le 0.10$).
-3. **Cold-Start Priors & Asymmetric EMA Adjustments:** Cold-start agents begin with conservative priors ($\text{TaskReliability}=0$) bounded between $\text{ColdStartFloor}$ (₹1,000) and $\text{AuthorizedCeiling}$. Trust updates respond asymmetrically ($\alpha_{\text{up}}=0.15, \alpha_{\text{down}}=0.65$).
-4. **Transaction Gateway Isolation:** Spend requests execute strictly outside the agent's LLM context via an isolated 15-step transaction gateway with PostgreSQL `SELECT FOR UPDATE` pessimistic row locking.
-5. **Automated Repayment & Zero-Latency Line Freeze:** Automated debit pulls settle outstanding draws. Repayment failures immediately trigger `FROZEN` authority status.
-6. **SHA-256 Append-Only Audit Chain:** Every transaction, draw, repayment, and state transition is hashed into an append-only audit ledger ($Hash_N = \text{SHA256}(N \parallel \text{EventID} \parallel \text{PayloadHash} \parallel Hash_{N-1})$).
+| Architectural Dimension | Mechanism & Implementation | Security & Reliability Guarantee |
+|:---|:---|:---|
+| **Cryptographic Identity** | Ed25519-signed Capability Mandates issued by accountable principals | Principal binding; prevents unauthorized agent impersonation |
+| **Multi-Factor Underwriting** | Analytic Hierarchy Process (AHP) 5-factor pairwise comparison matrix | Mathematical consistency ($CR = 0.0341 \le 0.10$) |
+| **Limit Dynamics & EMA** | Bounded floor/ceiling interpolation with asymmetric trust score EMA | $\alpha_{\text{up}}=0.15, \alpha_{\text{down}}=0.65$; rapid penalty on default |
+| **Spend Isolation Gateway** | 15-step Transaction Gateway with PostgreSQL `SELECT FOR UPDATE` | Pessimistic row locking; prevents race conditions & double-spends |
+| **Automated Repayment** | Scheduled mandate debit pulls with bank adapter integration | Zero-latency state transition to `FROZEN` on debit failure |
+| **Tamper-Evident Audit** | Append-only SHA-256 hash-chained event ledger | Cryptographic immutability ($Hash_N = \text{SHA256}(\dots)$) |
 
 ---
 
@@ -255,7 +257,17 @@ TrustLine/
 
 ## Quickstart
 
-### Option 1: Docker Desktop (Recommended)
+### Access Endpoints Table
+
+| Interface / Endpoint | Access URL / Connection | Target Service / Purpose |
+|:---|:---|:---|
+| **Frontend Console** | [http://localhost:3000](http://localhost:3000) *(or `http://localhost:5173`)* | React 18 Control Console & Judge Demo Lab |
+| **Backend API Health** | [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health) | Django REST Framework API & System Status |
+| **PostgreSQL Database** | `localhost:5433` (`trustline` / `postgres`) | Relational Store with Row Locking & Audit Chains |
+
+### Setup Instructions
+
+#### Option 1: Docker Desktop (Recommended)
 
 1. **Launch Stack:**
    ```bash
@@ -265,12 +277,8 @@ TrustLine/
    ```bash
    docker compose exec backend python scripts/seed_demo.py
    ```
-3. **Access Endpoints:**
-   - **Frontend Console:** [http://localhost:3000](http://localhost:3000)
-   - **Backend API Health:** [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health)
-   - **PostgreSQL Database:** `localhost:5433` (`trustline` / `postgres`)
 
-### Option 2: Local Python & Node Environment
+#### Option 2: Local Python & Node Environment
 
 1. **Backend Setup:**
    ```bash
@@ -287,31 +295,16 @@ TrustLine/
    npm install
    npm run dev
    ```
-3. **Access Interface:** Open [http://localhost:5173](http://localhost:5173).
 
 ---
 
-## Verification & Testing Suite
+## Verification & Testing Suite Table
 
-### 1. Pytest Backend Suite
-Executes unit tests covering AHP matrix consistency ratio ($CR \le 0.10$), bounded credit limits, asymmetric EMA constants, and SHA-256 audit hash-chaining:
-```bash
-make test
-# OR
-pytest backend/tests
-```
-
-### 2. End-to-End Automated Smoke Test
-Validates all 8 core lifecycle steps (Health Check, Seed Reset, Cold Start, Gateway Reservation, Settlement, Repayment Failure, Line Freeze, and Audit Validation):
-```bash
-python scripts/demo_smoke.py http://localhost:3000
-```
-
-### 3. PostgreSQL Concurrency Race Proof
-Fires simultaneous parallel threads attempting to overspend a credit line, proving PostgreSQL `SELECT FOR UPDATE` double-spend prevention:
-```bash
-python scripts/demo_concurrency.py http://localhost:8000
-```
+| Test / Verification Suite | Command Line Execution | Key Assertion & Verification Goal |
+|:---|:---|:---|
+| **Pytest Backend Suite** | `make test`<br/>*or* `pytest backend/tests` | Validates AHP eigenvector math ($CR \le 0.10$), limit dynamics, and hash-chaining |
+| **Automated Smoke Test** | `python scripts/demo_smoke.py http://localhost:3000` | E2E validation of all 8 lifecycle steps (Cold start, Draw, Repayment, Line Freeze, Audit) |
+| **PostgreSQL Concurrency Race** | `python scripts/demo_concurrency.py http://localhost:8000` | Fires simultaneous parallel threads to prove PostgreSQL `SELECT FOR UPDATE` locking |
 
 ---
 
