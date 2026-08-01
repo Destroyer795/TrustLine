@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Lock, Unlock, RefreshCw, Sparkles, Scale, ShieldCheck, ShieldAlert, ArrowLeft } from 'lucide-react';
-import { Agent, RiskProfile, RepaymentSchedule } from '../types';
+import { Agent, RiskProfile, RepaymentSchedule, CreditLimitChange, TaskReceipt } from '../types';
 import { api } from '../services/api';
-import { StatusBadge, ImputedBadge } from '../components/StatusBadge';
+import { StatusBadge } from '../components/StatusBadge';
 import { StatCard } from '../components/StatCard';
 import { LoadingState } from '../components/LoadingState';
+import { LimitTrajectory } from '../components/charts/LimitTrajectory';
+import { RiskComponents } from '../components/charts/RiskComponents';
 import { formatINR } from '../lib/format';
+import { cn } from '../lib/cn';
 
 const repaymentChip = (status: string) => {
   switch (status) {
@@ -24,6 +27,8 @@ export const AgentDetail: React.FC = () => {
   const [agent, setAgent] = useState<Agent | null>(null);
   const [risk, setRisk] = useState<RiskProfile | null>(null);
   const [repayments, setRepayments] = useState<RepaymentSchedule[]>([]);
+  const [limitHistory, setLimitHistory] = useState<CreditLimitChange[]>([]);
+  const [receipts, setReceipts] = useState<TaskReceipt[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -41,9 +46,19 @@ export const AgentDetail: React.FC = () => {
       setRepayments(repayData);
     } catch (e) {
       console.error(e);
-    } finally {
-      setLoading(false);
     }
+    // Read-only story endpoints degrade to empty states if not yet deployed.
+    try {
+      const [history, receiptData] = await Promise.all([
+        api.getLimitHistory(id).catch(() => []),
+        api.getReceipts(id).catch(() => []),
+      ]);
+      setLimitHistory(history);
+      setReceipts(receiptData);
+    } catch (e) {
+      console.error(e);
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -149,6 +164,29 @@ export const AgentDetail: React.FC = () => {
         <StatCard label="Outstanding Principal" value={formatINR(ca?.outstanding_principal)} caption="Pending Mandate Repayment" accent="default" />
       </section>
 
+      {/* Credit Limit Trajectory — the "earned slowly, lost fast" story */}
+      <section className="card-editorial rounded-sm">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-border px-6 pt-6 pb-4">
+          <div>
+            <p className="flex items-center gap-3">
+              <span aria-hidden="true" className="h-px w-8 bg-accent" />
+              <span className="kicker text-muted-ink">Asymmetric EMA</span>
+            </p>
+            <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-ink">Credit Limit Trajectory</h2>
+          </div>
+          <p className="font-mono text-xs text-muted-ink">earned slowly (α↑ 0.15) · lost fast (α↓ 0.65)</p>
+        </div>
+        <div className="p-5 md:p-6">
+          {limitHistory.length === 0 ? (
+            <p className="py-6 text-center font-mono text-xs text-muted-ink">
+              No limit changes recorded yet — run a draw or repayment to move the line.
+            </p>
+          ) : (
+            <LimitTrajectory changes={limitHistory} />
+          )}
+        </div>
+      </section>
+
       {/* Narrative Explanation */}
       {risk?.explanation && (
         <figure className="card-editorial rounded-sm border-l-4 border-l-accent p-7">
@@ -178,42 +216,47 @@ export const AgentDetail: React.FC = () => {
           </div>
         </div>
 
-        <ol className="mt-5 divide-y divide-border border border-border rounded-sm bg-surface shadow-card">
-          {risk?.evidence.map((ev, i) => {
-            const score = parseFloat(ev.score) * 100;
-            return (
-              <li key={ev.component} className="grid md:grid-cols-[2rem_minmax(0,1fr)_11rem] gap-x-4 gap-y-3 items-start md:items-center px-5 py-5">
-                <span aria-hidden="true" className="hidden md:block font-mono text-xs font-semibold text-accent">{String(i + 1).padStart(2, '0')}</span>
+        <div className="mt-5">
+          {risk?.evidence && <RiskComponents evidence={risk.evidence} weighted={risk.weighted_risk_score} />}
+        </div>
+      </section>
+
+      {/* Verified Task Receipts — Ed25519 proof of work */}
+      <section>
+        <div className="pb-4 border-b border-border">
+          <p className="flex items-center gap-3">
+            <span aria-hidden="true" className="h-px w-8 bg-accent" />
+            <span className="kicker text-muted-ink">Attestation</span>
+          </p>
+          <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-ink">Verified Ed25519 Task Receipts</h2>
+        </div>
+        {receipts.length === 0 ? (
+          <p className="mt-5 font-mono text-xs text-muted-ink">No verified task receipts yet — they accrue as the agent completes attested work.</p>
+        ) : (
+          <ul className="mt-5 divide-y divide-border border border-border rounded-sm bg-surface shadow-card">
+            {receipts.map((r) => (
+              <li key={r.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4">
                 <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-display text-lg font-semibold text-ink">{ev.component}</h3>
-                    <ImputedBadge isImputed={ev.is_imputed} />
-                  </div>
-                  <p className="mt-1 text-xs text-muted-ink leading-relaxed">{ev.reason}</p>
-                  <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-ink">
-                    Source: {ev.source} • Samples: {ev.evidence_count}
-                  </p>
+                  <span className="block font-display text-base font-semibold text-ink">{r.issuer}</span>
+                  <span className="mt-0.5 block font-mono text-xs text-muted-ink">
+                    {r.value != null ? formatINR(r.value) : 'No value'} • {new Date(r.issued_at).toLocaleString()}
+                  </span>
+                  <span className="mt-1 block break-all font-mono text-[10px] text-muted-ink" title="Ed25519 signature (truncated)">
+                    {r.signature_short}
+                  </span>
                 </div>
-                <div className="md:text-right">
-                  <div className="flex items-baseline justify-start md:justify-end gap-1">
-                    <span className="font-mono text-2xl font-bold text-ink">{score.toFixed(1)}</span>
-                    <span className="text-xs text-muted-ink">/ 100</span>
-                  </div>
-                  <div
-                    role="meter"
-                    aria-valuenow={Math.round(score)}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-label={`${ev.component} score`}
-                    className="mt-2 h-1.5 w-full bg-canvas border border-border"
-                  >
-                    <div className="h-full bg-teal" style={{ width: `${Math.min(100, Math.max(0, score))}%` }} />
-                  </div>
-                </div>
+                <span
+                  className={cn(
+                    'inline-flex w-fit items-center rounded-[2px] border px-2.5 py-1 font-mono text-xs font-semibold',
+                    r.outcome === 'SUCCESS' ? 'bg-teal-light text-teal-dark border-teal/30' : 'bg-danger-light text-danger border-danger/30',
+                  )}
+                >
+                  {r.outcome}
+                </span>
               </li>
-            );
-          })}
-        </ol>
+            ))}
+          </ul>
+        )}
       </section>
 
       {/* Active Mandate Security Details */}
