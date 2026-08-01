@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
+import { Footer } from './components/Footer';
 import { Overview } from './pages/Overview';
 import { AgentList } from './pages/AgentList';
 import { AgentCreate } from './pages/AgentCreate';
@@ -12,9 +13,15 @@ import { SystemHealth } from './pages/SystemHealth';
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[60] focus:bg-teal focus:text-surface focus:px-4 focus:py-2 focus:font-medium focus:rounded-[2px]"
+      >
+        Skip to main content
+      </a>
       <div className="min-h-screen flex flex-col bg-canvas text-ink">
         <Navbar />
-        <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
+        <main id="main-content" tabIndex={-1} className="flex-1 w-full max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10">
           <Routes>
             <Route path="/" element={<Overview />} />
             <Route path="/agents" element={<AgentList />} />
@@ -25,9 +32,7 @@ export const App: React.FC = () => {
             <Route path="/system" element={<SystemHealth />} />
           </Routes>
         </main>
-        <footer className="bg-surface border-t border-border py-6 mt-12 text-center text-xs font-mono text-muted-ink">
-          TrustLine — Autonomous Agent Credit Infrastructure • 31-Hour FinTech Hackathon Build
-        </footer>
+        <Footer />
       </div>
     </BrowserRouter>
   );

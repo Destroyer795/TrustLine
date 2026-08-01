@@ -3,19 +3,96 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-feature-settings: 'kern' 1, 'liga' 1;
+  }
+
   body {
     background-color: #F4F0E6;
     color: #1E2726;
     font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
-  
-  h1, h2, h3, .font-serif {
-    font-family: 'Fraunces', serif;
+
+  h1, h2, h3, h4, .font-serif {
+    font-family: 'Fraunces', Georgia, serif;
+    font-optical-sizing: auto;
+  }
+
+  ::selection {
+    background-color: #E6F0EF;
+    color: #245651;
+  }
+
+  /* Visible keyboard focus everywhere — 2px teal ring, offset off the surface. */
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid #2F6F68;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Respect reduced-motion at the platform level. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
-.card-editorial {
-  background-color: #FFFCF5;
-  border: 1px solid #D8D1C3;
-  box-shadow: 0 2px 4px rgba(30, 39, 38, 0.04);
+@layer components {
+  /* Editorial surface — warm paper with a hairline and a barely-there shadow. */
+  .card-editorial {
+    background-color: #FFFCF5;
+    border: 1px solid #D8D1C3;
+    box-shadow: 0 1px 2px rgba(30, 39, 38, 0.05);
+    transition: box-shadow 0.25s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  /* Mono uppercase index label — the console's "kicker" voice. */
+  .kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* Animated hairline underline for text links. */
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+    padding-bottom: 1px;
+  }
+  .link-underline:hover,
+  .link-underline:focus-visible {
+    background-size: 100% 1px;
+  }
+
+  /* Vertical editorial rule (used in hero/metadata strips). */
+  .v-rule {
+    border-left: 1px solid #D8D1C3;
+  }
+
+  /* Subtle console scrollbar for the Demo Lab terminal. */
+  .console-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #D8D1C3 transparent;
+  }
+  .console-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+  .console-scroll::-webkit-scrollbar-thumb {
+    background-color: #D8D1C3;
+    border-radius: 0;
+  }
+  .console-scroll::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
 }

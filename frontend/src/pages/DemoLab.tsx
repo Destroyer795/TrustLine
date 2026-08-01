@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Play, ShieldAlert, Zap, RefreshCw, CheckCircle, AlertTriangle, Scale, Lock } from 'lucide-react';
+import { Zap, ShieldAlert, RefreshCw, Lock, Scale, ChevronDown, Terminal } from 'lucide-react';
 import { api } from '../services/api';
 import { Agent } from '../types';
+import { PageHeader } from '../components/PageHeader';
+
+const inputCls =
+  'w-full rounded-[2px] border border-border bg-canvas px-3 py-2.5 text-sm text-ink placeholder:text-muted-ink/60 transition-colors focus:border-teal-dark';
+
+const panelTitleCls = 'font-display text-lg font-semibold text-ink';
 
 export const DemoLab: React.FC = () => {
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -144,133 +150,139 @@ export const DemoLab: React.FC = () => {
     }
   };
 
+  const scenarios = [
+    { index: '01', label: 'Staged Draw In-Flight Revocation', icon: Lock, iconColor: 'text-warning', onClick: handleInFlightRevoke },
+    { index: '02', label: 'Force Repayment Failure & Line Freeze', icon: ShieldAlert, iconColor: 'text-danger', onClick: handleSimulateRepaymentFail },
+    { index: '03', label: 'Test Audit Log Tamper Detection', icon: Scale, iconColor: 'text-olive', onClick: handleTamperAudit },
+    { index: '04', label: 'Reset & Re-Seed Clean Demo State', icon: RefreshCw, iconColor: 'text-muted-ink', onClick: handleResetDemo },
+  ];
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-serif font-bold text-ink">Judge Interactive Demo Lab</h1>
-        <p className="text-sm text-muted-ink mt-1">Deterministic control panel to test credit limits, policy enforcement, failure escalation, and audit integrity.</p>
-      </div>
+      <PageHeader
+        kicker="Enforcement Test Rig"
+        title="Judge Interactive Demo Lab"
+        description="Deterministic control panel to test credit limits, policy enforcement, failure escalation, and audit integrity."
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Controls Column */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Control panel column */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="card-editorial p-6 rounded-lg space-y-4">
-            <h2 className="text-lg font-serif font-bold text-ink border-b border-border pb-2">Target Agent Selection</h2>
-            
-            <div>
-              <label className="block text-xs font-mono text-muted-ink uppercase mb-1">Select Agent</label>
-              <select
-                value={selectedAgentId}
-                onChange={(e) => setSelectedAgentId(e.target.value)}
-                className="w-full p-2.5 bg-canvas border border-border rounded text-sm text-ink font-medium focus:outline-none focus:border-teal"
-              >
-                {agents.map((ag) => (
-                  <option key={ag.id} value={ag.id}>
-                    {ag.display_name} [{ag.status}]
-                  </option>
+          <section className="card-editorial rounded-sm overflow-hidden">
+            <div className="border-b border-border p-5">
+              <h2 className={panelTitleCls}>Target Agent</h2>
+              <label htmlFor="target-agent" className="mt-3 block font-mono text-[11px] uppercase tracking-widest text-muted-ink">Select Agent</label>
+              <div className="relative mt-1.5">
+                <select
+                  id="target-agent"
+                  value={selectedAgentId}
+                  onChange={(e) => setSelectedAgentId(e.target.value)}
+                  className={`${inputCls} appearance-none pr-9`}
+                >
+                  {agents.map((ag) => (
+                    <option key={ag.id} value={ag.id}>
+                      {ag.display_name} [{ag.status}]
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-ink" />
+              </div>
+            </div>
+
+            <div className="border-b border-border p-5">
+              <h2 className={panelTitleCls}>Draw Parameters</h2>
+              <div className="mt-3 space-y-3">
+                <div>
+                  <label htmlFor="draw-amount" className="block font-mono text-[11px] uppercase tracking-widest text-muted-ink">Amount (₹)</label>
+                  <div className="relative mt-1.5">
+                    <span aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-muted-ink">₹</span>
+                    <input
+                      id="draw-amount"
+                      type="number"
+                      value={drawAmount}
+                      onChange={(e) => setDrawAmount(e.target.value)}
+                      className={`${inputCls} pl-7 font-mono`}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="merchant-category" className="block font-mono text-[11px] uppercase tracking-widest text-muted-ink">Merchant Category</label>
+                  <div className="relative mt-1.5">
+                    <select
+                      id="merchant-category"
+                      value={merchantCategory}
+                      onChange={(e) => setMerchantCategory(e.target.value)}
+                      className={`${inputCls} appearance-none pr-9`}
+                    >
+                      <option value="CLOUD_SERVICES">CLOUD_SERVICES (Allowed)</option>
+                      <option value="API_SERVICES">API_SERVICES (Allowed)</option>
+                      <option value="P2P_TRANSFER">P2P_TRANSFER (Denied Category)</option>
+                      <option value="CRYPTO_EXCHANGE">CRYPTO_EXCHANGE (Denied Category)</option>
+                    </select>
+                    <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-ink" />
+                  </div>
+                </div>
+                <button
+                  onClick={handleTestDraw}
+                  disabled={loading}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-[2px] bg-teal px-4 py-2.5 text-sm font-medium text-surface transition-colors hover:bg-teal-dark active:translate-y-px shadow-card disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Zap className="h-4 w-4" aria-hidden="true" />
+                  Test Gateway Draw Request
+                </button>
+              </div>
+            </div>
+
+            <div className="p-5">
+              <h2 className={panelTitleCls}>Enforcement Scenarios</h2>
+              <ol className="mt-3 space-y-2">
+                {scenarios.map((s) => (
+                  <li key={s.index}>
+                    <button
+                      onClick={s.onClick}
+                      disabled={loading}
+                      className="group flex w-full items-center gap-3 rounded-[2px] border border-border bg-canvas px-4 py-3 text-left transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <span aria-hidden="true" className="font-mono text-[11px] font-semibold text-accent">{s.index}</span>
+                      <s.icon className={`h-4 w-4 shrink-0 ${s.iconColor}`} aria-hidden="true" />
+                      <span className="text-xs font-medium text-ink">{s.label}</span>
+                    </button>
+                  </li>
                 ))}
-              </select>
+              </ol>
             </div>
-
-            <div className="space-y-2 pt-2">
-              <label className="block text-xs font-mono text-muted-ink uppercase">Draw Parameters</label>
-              <input
-                type="number"
-                value={drawAmount}
-                onChange={(e) => setDrawAmount(e.target.value)}
-                className="w-full p-2 bg-canvas border border-border rounded text-sm font-mono text-ink"
-                placeholder="Amount (₹)"
-              />
-              <select
-                value={merchantCategory}
-                onChange={(e) => setMerchantCategory(e.target.value)}
-                className="w-full p-2 bg-canvas border border-border rounded text-sm text-ink"
-              >
-                <option value="CLOUD_SERVICES">CLOUD_SERVICES (Allowed)</option>
-                <option value="API_SERVICES">API_SERVICES (Allowed)</option>
-                <option value="P2P_TRANSFER">P2P_TRANSFER (Denied Category)</option>
-                <option value="CRYPTO_EXCHANGE">CRYPTO_EXCHANGE (Denied Category)</option>
-              </select>
-
-              <button
-                onClick={handleTestDraw}
-                disabled={loading}
-                className="w-full py-2 bg-teal text-surface font-medium text-xs rounded hover:bg-teal-dark transition-colors flex items-center justify-center space-x-1"
-              >
-                <Zap className="w-4 h-4" />
-                <span>Test Gateway Draw Request</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="card-editorial p-6 rounded-lg space-y-3">
-            <h2 className="text-lg font-serif font-bold text-ink border-b border-border pb-2">Enforcement Scenarios</h2>
-            
-            <button
-              onClick={handleInFlightRevoke}
-              disabled={loading}
-              className="w-full py-2 bg-canvas border border-border text-ink text-xs font-medium rounded hover:bg-surface transition-colors text-left px-3 flex items-center space-x-2"
-            >
-              <Lock className="w-4 h-4 text-warning" />
-              <span>1. Staged Draw In-Flight Revocation</span>
-            </button>
-
-            <button
-              onClick={handleSimulateRepaymentFail}
-              disabled={loading}
-              className="w-full py-2 bg-canvas border border-border text-ink text-xs font-medium rounded hover:bg-surface transition-colors text-left px-3 flex items-center space-x-2"
-            >
-              <ShieldAlert className="w-4 h-4 text-danger" />
-              <span>2. Force Repayment Failure & Line Freeze</span>
-            </button>
-
-            <button
-              onClick={handleTamperAudit}
-              disabled={loading}
-              className="w-full py-2 bg-canvas border border-border text-ink text-xs font-medium rounded hover:bg-surface transition-colors text-left px-3 flex items-center space-x-2"
-            >
-              <Scale className="w-4 h-4 text-olive" />
-              <span>3. Test Audit Log Tamper Detection</span>
-            </button>
-
-            <button
-              onClick={handleResetDemo}
-              disabled={loading}
-              className="w-full py-2 bg-canvas border border-border text-muted-ink text-xs font-medium rounded hover:bg-surface transition-colors text-left px-3 flex items-center space-x-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              <span>Reset & Re-Seed Clean Demo State</span>
-            </button>
-          </div>
+          </section>
         </div>
 
-        {/* Live Execution Console Column */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="card-editorial p-6 rounded-lg h-full flex flex-col">
-            <div className="flex items-center justify-between border-b border-border pb-3 mb-4">
-              <h2 className="text-lg font-serif font-bold text-ink">Live Gateway Execution Log</h2>
+        {/* Live execution console column */}
+        <div className="lg:col-span-2">
+          <section aria-label="Live gateway execution log" className="card-editorial rounded-sm overflow-hidden h-full flex flex-col">
+            <div className="flex items-center justify-between gap-3 border-b border-border bg-canvas px-5 py-3">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span aria-hidden="true" className="h-2 w-2 shrink-0 animate-pulse bg-teal" />
+                <Terminal className="h-4 w-4 shrink-0 text-muted-ink" aria-hidden="true" />
+                <h2 className="truncate font-mono text-[11px] font-semibold uppercase tracking-widest text-muted-ink">Live Gateway Execution Log</h2>
+              </div>
               <button
                 onClick={() => setLogOutput([])}
-                className="text-xs font-mono text-muted-ink hover:text-ink"
+                className="shrink-0 font-mono text-[11px] uppercase tracking-widest text-muted-ink transition-colors hover:text-ink"
               >
                 Clear Log
               </button>
             </div>
 
-            <div className="flex-1 bg-ink text-canvas font-mono text-xs p-4 rounded-md overflow-y-auto space-y-2 min-h-[400px] max-h-[600px] selection:bg-teal selection:text-surface">
+            <div className="console-scroll flex-1 space-y-2 overflow-y-auto bg-ink p-5 font-mono text-xs leading-relaxed text-canvas selection:bg-teal selection:text-surface min-h-[400px] max-h-[600px]">
               {logOutput.length === 0 ? (
-                <div className="text-muted-ink text-center pt-20">
+                <p className="pt-20 text-center text-muted-ink">
                   Ready. Click any enforcement scenario to view real-time gateway events...
-                </div>
+                </p>
               ) : (
                 logOutput.map((log, i) => (
-                  <div key={i} className="leading-relaxed border-b border-white/10 pb-1">
-                    {log}
-                  </div>
+                  <div key={i} className="border-b border-white/10 pb-1">{log}</div>
                 ))
               )}
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </div>
