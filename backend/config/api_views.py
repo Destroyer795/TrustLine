@@ -287,6 +287,45 @@ def agent_recalculate_risk(request, pk):
         snapshot = calculate_and_save_risk_profile(ag)
         return Response({"agent_id": str(ag.id), "score": str(snapshot.weighted_risk_score)})
 
+@api_view(['GET'])
+def agent_limit_history(request, pk):
+    try:
+        ag = Agent.objects.get(id=pk)
+    except Agent.DoesNotExist:
+        raise APIError("NOT_FOUND", "Agent not found.", status_code=404)
+
+    ca = getattr(ag, 'credit_account', None)
+    if not ca:
+        return Response([])
+
+    changes = ca.limit_changes.order_by('created_at')[:30]
+    return Response([{
+        "previous_limit": str(c.previous_limit),
+        "new_limit": str(c.new_limit),
+        "target_limit": str(c.target_limit),
+        "alpha": str(c.alpha),
+        "trigger": c.trigger,
+        "reason": c.reason,
+        "created_at": c.created_at.isoformat()
+    } for c in changes])
+
+@api_view(['GET'])
+def agent_receipts(request, pk):
+    try:
+        ag = Agent.objects.get(id=pk)
+    except Agent.DoesNotExist:
+        raise APIError("NOT_FOUND", "Agent not found.", status_code=404)
+
+    receipts = ag.receipts.order_by('-issued_at')
+    return Response([{
+        "id": str(r.id),
+        "issuer": r.issuer.name,
+        "outcome": r.outcome,
+        "value": str(r.value) if r.value is not None else None,
+        "issued_at": r.issued_at.isoformat(),
+        "signature_short": r.ed25519_signature[:16] + "…"
+    } for r in receipts])
+
 # --- Gateway & Draws ---
 
 @api_view(['POST'])

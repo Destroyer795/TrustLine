@@ -34,7 +34,7 @@ export const AgentList: React.FC = () => {
       <PageHeader
         kicker="Inventory"
         title="Agents Inventory"
-        description="Monitored autonomous agent accounts under principal authority."
+        description="Every line here is underwritten by AHP risk scoring, signed into an Ed25519 capability mandate, and enforced outside the agent's own context — so the machine can't talk its way past its own limit."
         actions={
           <>
             <button

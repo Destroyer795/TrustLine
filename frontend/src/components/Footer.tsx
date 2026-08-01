@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { StripeBand } from './Geometrics';
+import { Logo } from './Logo';
 
 /** Editorial footer — brand line, quick links, and a mono system-identity strip. */
 export const Footer: React.FC = () => {
@@ -19,17 +20,11 @@ export const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           <div className="max-w-xs">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-sm bg-teal flex items-center justify-center text-surface font-display font-semibold text-lg leading-none">
-                T
-              </div>
-              <div>
-                <span className="block font-display font-semibold text-lg tracking-tight text-ink leading-none">TrustLine</span>
-                <span className="block mt-1 font-mono text-[10px] uppercase tracking-widest text-muted-ink">Agent Credit Infrastructure</span>
-              </div>
-            </div>
+            <Logo markClassName="h-8 w-8" />
             <p className="mt-4 text-xs text-muted-ink leading-relaxed">
-              Cryptographic, risk-underwritten credit lines for autonomous AI agents — bound to accountable principals by Ed25519-signed capability mandates.
+              The mark is a bridge: the deck is the credit line, the stay cables are the Ed25519-signed capability
+              mandate, the tower is principal authority. It spans the trust gap between a human and a machine that
+              holds no legal identity.
             </p>
           </div>
 

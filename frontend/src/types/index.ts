@@ -104,6 +104,25 @@ export interface RepaymentSchedule {
   attempts: RepaymentAttempt[];
 }
 
+export interface CreditLimitChange {
+  previous_limit: string;
+  new_limit: string;
+  target_limit: string;
+  alpha: string;
+  trigger: string;
+  reason: string;
+  created_at: string;
+}
+
+export interface TaskReceipt {
+  id: string;
+  issuer: string;
+  outcome: 'SUCCESS' | 'FAILED';
+  value: string | null;
+  issued_at: string;
+  signature_short: string;
+}
+
 export interface AuditEvent {
   sequence: number;
   event_id: string;

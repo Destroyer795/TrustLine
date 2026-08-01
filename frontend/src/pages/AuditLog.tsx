@@ -5,6 +5,7 @@ import { api } from '../services/api';
 import { PageHeader } from '../components/PageHeader';
 import { EmptyState } from '../components/EmptyState';
 import { LoadingState } from '../components/LoadingState';
+import { AuditTimeline } from '../components/charts/AuditTimeline';
 import { cn } from '../lib/cn';
 
 export const AuditLog: React.FC = () => {
@@ -45,7 +46,7 @@ export const AuditLog: React.FC = () => {
       <PageHeader
         kicker="Tamper-Evident Ledger"
         title="Tamper-Evident Audit Ledger"
-        description="SHA-256 hash-chained event history verifying immutable sequence integrity."
+        description="Every event is chained to the one before it by its SHA-256 hash — edit one record and the link breaks, and the verifier catches it instantly."
         actions={
           <>
             <button
@@ -108,6 +109,13 @@ export const AuditLog: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Sequence timeline — the "one edit breaks the chain" story */}
+      {events.length > 0 && (
+        <div className="card-editorial rounded-sm">
+          <AuditTimeline events={events} corruptedSequence={chainStatus?.corrupted_sequence} />
+        </div>
+      )}
 
       {/* Ledger table */}
       <div className="card-editorial rounded-sm overflow-hidden">

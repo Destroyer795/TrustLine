@@ -80,6 +80,11 @@
     border-left: 1px solid #D8D1C3;
   }
 
+  /* Imputed risk evidence — hatch texture (secondary encoding, never hue-only). */
+  .risk-bar-imputed {
+    background-image: repeating-linear-gradient(45deg, #2F6F68 0 6px, #A9CBC7 6px 12px);
+  }
+
   /* Subtle console scrollbar for the Demo Lab terminal. */
   .console-scroll {
     scrollbar-width: thin;
