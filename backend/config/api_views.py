@@ -1,4 +1,6 @@
 import secrets
+import os
+from django.db import connection
 from decimal import Decimal
 from django.utils import timezone
 from rest_framework.decorators import api_view
@@ -25,7 +27,11 @@ from backend.apps.demo.llm_explainer import generate_risk_explanation_narrative
 
 @api_view(['GET'])
 def health_check(request):
-    return Response({"status": "ok", "service": "TrustLine Infrastructure", "version": "v1.0", "timestamp": timezone.now().isoformat()})
+    return Response({
+        "status": "ok", "service": "TrustLine Infrastructure", "version": "1.0.0",
+        "timestamp": timezone.now().isoformat(), "database": connection.vendor,
+        "narration": {"provider": "Gemini", "model": os.environ.get("GEMINI_MODEL", "gemini-2.5-flash"), "configured": bool(os.environ.get("GEMINI_API_KEY"))}
+    })
 
 # --- Principals & Identity ---
 

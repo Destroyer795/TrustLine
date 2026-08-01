@@ -49,8 +49,8 @@ def run_seed():
 
     # 1. Create Principal
     principal, _ = Principal.objects.get_or_create(
-        email="demo.principal@acmecorp.com",
-        defaults={"name": "Acme Enterprise Solutions"}
+        email="credit.ops@northstar.example",
+        defaults={"name": "Northstar Commerce Group"}
     )
     PrincipalVerification.objects.get_or_create(
         principal=principal,
@@ -58,7 +58,7 @@ def run_seed():
     )
     linked_account, _ = LinkedAccount.objects.get_or_create(
         principal=principal,
-        account_reference="BANK-ACME-PRIMARY-9021",
+        account_reference="BANK-NORTHSTAR-PRIMARY-9021",
         defaults={"bank_name": "TrustLine Simulated Reserve Bank", "mock_balance": Decimal('100000.00'), "status": "ACTIVE"}
     )
 

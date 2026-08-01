@@ -16,6 +16,7 @@ def generate_risk_explanation_narrative(agent: Agent, snapshot) -> dict:
     )
 
     api_key = os.environ.get("GEMINI_API_KEY")
+    model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
     if not api_key:
         return {
             "narrative": fallback_text,
@@ -24,7 +25,7 @@ def generate_risk_explanation_narrative(agent: Agent, snapshot) -> dict:
         }
 
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
         prompt = (
             "You are a Fintech Credit Risk Analyst explaining an autonomous agent's credit profile to a human supervisor.\n"
             "Summarize these pre-calculated deterministic facts in 2 concise sentences:\n"
@@ -37,13 +38,13 @@ def generate_risk_explanation_narrative(agent: Agent, snapshot) -> dict:
             "Do not invent new numbers or alter decisions."
         )
         payload = {"contents": [{"parts": [{"text": prompt}]}]}
-        resp = requests.post(url, json=payload, timeout=2.5)
+        resp = requests.post(url, json=payload, headers={"X-goog-api-key": api_key}, timeout=2.5)
         if resp.status_code == 200:
             data = resp.json()
             text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
             return {
                 "narrative": text,
-                "source": "GEMINI_1_5_FLASH",
+                "source": f"GEMINI:{model}",
                 "is_llm_generated": True
             }
     except Exception:

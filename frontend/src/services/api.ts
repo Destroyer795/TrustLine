@@ -1,6 +1,7 @@
 import { Agent, Principal, RiskProfile, DrawRequest, RepaymentSchedule, AuditEvent } from '../types';
 
-const API_BASE = '/api/v1';
+const configuredBase = (import.meta.env.VITE_API_BASE_URL || '/api/v1').replace(/\/$/, '');
+const API_BASE = configuredBase.endsWith('/api/v1') ? configuredBase : `${configuredBase}/api/v1`;
 
 async function fetchJSON<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${endpoint}`, {
@@ -10,9 +11,10 @@ async function fetchJSON<T>(endpoint: string, options?: RequestInit): Promise<T>
       ...(options?.headers || {})
     }
   });
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(data.error?.message || data.error?.code || 'API Request Failed');
+    const details = data.error?.details ? ` (${JSON.stringify(data.error.details)})` : '';
+    throw new Error(`${data.error?.message || data.error?.code || `API request failed with HTTP ${res.status}`}${details}`);
   }
   return data as T;
 }
