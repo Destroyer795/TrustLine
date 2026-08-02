@@ -80,17 +80,17 @@ flowchart LR
 | **`repayment`** | `RepaymentSchedule`, `RepaymentAttempt` | Automated Mandate Debit Pulls & Simulated Bank Adapter Settlement |
 | **`monitoring`** | `AuthorityStateTransition`, `Escalation` | Finite State Machine (`NORMAL`, `RESTRICTED`, `FROZEN`, `HUMAN_REVIEW`) & Security Escalations |
 | **`audit`** | `AuditEvent` | Append-Only SHA-256 Hash-Chained Audit Ledger ($Hash_N = \text{SHA256}(N \parallel \dots \parallel Hash_{N-1})$) |
-| **`demo`** | `DemoScenarioState` | Deterministic Database Seeder & Judge LLM Explainer Gateway |
+| **`demo`** | `DemoSession`, `DemoStepResult` | Persistent deterministic bot orchestration, step evidence, reset, replay, and narration boundary |
 
 ---
 
 ## Seeded Agent Test Matrix Table
 
-| Seeded Agent | Target Scenario | Starting Credit Line | Authority State | Expected HTTP Result |
-|:---|:---|:---|:---|:---|
-| **`ProcurementBot-Good`** | Verified SaaS & Cloud Procurement | ₹15,000 | `NORMAL` | `201 CREATED` |
-| **`ArbitrageBot-Bad`** | Repayment Failure & Default Handling | ₹0 (Frozen) | `FROZEN` | `403 AGENT_FROZEN` |
-| **`DataScraper-New`** | Cold-Start Underwriting & Over-Limit Protection | ₹2,000 | `NORMAL` | `402 CREDIT_LIMIT_EXCEEDED` *(when draw > ₹2,000)* |
+| Seeded Agent | Target Scenario | Starting Authority | Expected Proof |
+|:---|:---|:---|:---|
+| **Atlas Procurement Bot** | Complete authorized purchase, settlement, and repayment | `NORMAL` | Reservation and settlement succeed; repayment increases trust gradually |
+| **Scout Research Bot** | Cold-start boundary with a request one rupee above available credit | `NORMAL` | `402 CREDIT_LIMIT_EXCEEDED` with no reservation or exposure |
+| **Vector Arbitrage Bot** | Capability restriction and failed repayment | `NORMAL` | Denied categories return `403`; repayment failure freezes authority |
 
 > **Verification Tip:** Non-2xx HTTP responses are part of the cryptographic proof. A `402 CREDIT_LIMIT_EXCEEDED` response confirms that over-limit policy checks succeeded, while a `403 AGENT_FROZEN` response confirms zero-latency line isolation.
 
@@ -203,6 +203,40 @@ $$H_N = \text{SHA-256}\left( N \mathbin{\Vert} \text{EventID} \mathbin{\Vert} \t
 
 ## Product Tour
 
+### Animated Proof
+
+#### Atlas completes the full credit cycle
+
+<div align="center">
+  <a href="docs/screenshots/demo-desktop.png">
+    <img src="docs/demos/trustline-success-cycle.gif" width="1100" alt="Desktop recording of Atlas Procurement Bot passing deterministic gateway checks, reserving and settling an authorized purchase, repaying successfully, and receiving a gradual credit-limit increase" />
+  </a>
+</div>
+
+**Judge takeaway:** Atlas passes the deterministic gateway, receives vendor settlement, repays through the simulated mandate pull, and earns trust gradually. [Open the static Demo Lab view](docs/screenshots/demo-desktop.png).
+
+#### The gateway contains failures outside the bot's control
+
+<div align="center">
+  <a href="docs/screenshots/demo-desktop.png">
+    <img src="docs/demos/trustline-enforcement-proof.gif" width="1100" alt="Desktop recording of Scout Research Bot receiving a real over-limit rejection without exposure, followed by Vector Arbitrage Bot failing repayment and entering the frozen authority state" />
+  </a>
+</div>
+
+**Judge takeaway:** Scout receives a real `402` without creating exposure; Vector's failed repayment freezes its authority and leaves the result available for inspection. [Open the static enforcement view](docs/screenshots/demo-desktop.png).
+
+#### Analytics projects policy without mutating evidence
+
+<div align="center">
+  <a href="docs/screenshots/analytics-desktop.png">
+    <img src="docs/demos/trustline-analytics-simulator.gif" width="1100" alt="Desktop recording of TrustLine analytics charts and a deterministic what-if simulation rejecting a denied merchant category while confirming that the database was not mutated" />
+  </a>
+</div>
+
+**Judge takeaway:** The simulator exposes every deterministic gateway check, rejects a denied category, and confirms that the projection did not mutate the database. [Open the static Analytics view](docs/screenshots/analytics-desktop.png).
+
+The animated recordings are desktop captures at 1440×900 for readable evidence. Tablet and mobile behavior is documented with the static route gallery below.
+
 ### Complete Route Overview
 
 | Desktop · 1440×900 | Tablet · 1024×768 | Mobile · 390×844 |
@@ -241,6 +275,11 @@ $$H_N = \text{SHA-256}\left( N \mathbin{\Vert} \text{EventID} \mathbin{\Vert} \t
 | Desktop | Tablet | Mobile |
 |:---|:---|:---|
 | ![Demo Lab desktop](docs/screenshots/demo-desktop.png) | ![Demo Lab tablet](docs/screenshots/demo-tablet.png) | ![Demo Lab mobile](docs/screenshots/demo-mobile.png) |
+
+### Portfolio Analytics & What-If Simulator
+| Desktop | Tablet | Mobile |
+|:---|:---|:---|
+| ![Portfolio analytics desktop with risk, exposure, merchant category, repayment, and authority evidence](docs/screenshots/analytics-desktop.png) | ![Portfolio analytics tablet with responsive evidence charts](docs/screenshots/analytics-tablet.png) | ![Portfolio analytics mobile with stacked evidence charts and simulator](docs/screenshots/analytics-mobile.png) |
 
 ### Tamper-Evident Audit Ledger
 | Desktop | Tablet | Mobile |
