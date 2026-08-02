@@ -1,6 +1,6 @@
 <div align="center">
 
-![](https://img.shields.io/badge/INNOVA%20HACKATHON-900C3F?style=for-the-badge)
+![](https://img.shields.io/badge/INNOVAHACK%20HACKATHON-900C3F?style=for-the-badge)
 
 # TrustLine
 
