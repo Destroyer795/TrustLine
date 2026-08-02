@@ -61,6 +61,12 @@ flowchart LR
 [![Docker Stack](https://img.shields.io/badge/Docker-3%20containers%20ready-blue.svg)](docker-compose.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+<div align="center">
+  <br/>
+  <img src="assets/Enterprise AI Risk System Diagram.png" width="100%" alt="TrustLine Enterprise AI Risk System — full component architecture from principal through autonomous agent to cryptographic audit ledger" />
+  <p><sub><em>Full system architecture: Human Principal → Ed25519 Mandate → Autonomous Agent → 15-Step Gateway → PostgreSQL Row Lock → SHA-256 Audit Ledger</em></sub></p>
+</div>
+
 ---
 
 ## Backend Module Architecture Table
@@ -72,7 +78,7 @@ flowchart LR
 | **`credit`** | `CreditAccount`, `LimitHistory` | Cold-Start Floor Bounds & Asymmetric Trust Score EMA ($\alpha_{\text{up}}=0.15, \alpha_{\text{down}}=0.65$) |
 | **`gateway`** | `DrawRequest`, `DrawReservation` | 15-Step Spend Gateway with PostgreSQL `SELECT FOR UPDATE` Pessimistic Row Locking |
 | **`repayment`** | `RepaymentSchedule`, `RepaymentAttempt` | Automated Mandate Debit Pulls & Simulated Bank Adapter Settlement |
-| **`monitoring`** | `AuthorityStateTransition`, `Escalation` | Finite State Machine (`NORMAL`, `RESTRICTED`, `FROZEN`) & Security Escalations |
+| **`monitoring`** | `AuthorityStateTransition`, `Escalation` | Finite State Machine (`NORMAL`, `RESTRICTED`, `FROZEN`, `HUMAN_REVIEW`) & Security Escalations |
 | **`audit`** | `AuditEvent` | Append-Only SHA-256 Hash-Chained Audit Ledger ($Hash_N = \text{SHA256}(N \parallel \dots \parallel Hash_{N-1})$) |
 | **`demo`** | `DemoScenarioState` | Deterministic Database Seeder & Judge LLM Explainer Gateway |
 
@@ -87,6 +93,15 @@ flowchart LR
 | **`DataScraper-New`** | Cold-Start Underwriting & Over-Limit Protection | ₹2,000 | `NORMAL` | `402 CREDIT_LIMIT_EXCEEDED` *(when draw > ₹2,000)* |
 
 > **Verification Tip:** Non-2xx HTTP responses are part of the cryptographic proof. A `402 CREDIT_LIMIT_EXCEEDED` response confirms that over-limit policy checks succeeded, while a `403 AGENT_FROZEN` response confirms zero-latency line isolation.
+
+<details>
+<summary><strong>🗺️ Judge Quick-Scan: All Diagrams at a Glance</strong></summary>
+<br/>
+<div align="center">
+  <img src="assets/TrustLine_autonomous_credit_infr…_202608021112.jpeg" width="100%" alt="TrustLine all-in-one technical overview: system components, draw lifecycle, repayment lifecycle, authority state machine, and entity-relationship model" />
+  <p><sub><em>One-page technical overview — system components, draw lifecycle, repayment, state machine, and data model</em></sub></p>
+</div>
+</details>
 
 ---
 
@@ -120,18 +135,43 @@ graph TD
         REPAY -->|Mandate Debit Pull| BANK["Simulated Bank Adapter"]
         
         BANK -->|Success / Failure| SM["Authority State Machine"]
-        SM -->|NORMAL / RESTRICTED / FROZEN| DB
+        SM -->|NORMAL / RESTRICTED / FROZEN / HUMAN_REVIEW| DB
         
         GATEWAY -->|Append Event| AUDIT["SHA-256 Hash-Chained Audit Ledger"]
     end
 ```
+
+### Visual Architecture Diagrams
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <strong>Draw Lifecycle — 15-Step Transaction Gateway</strong><br/><br/>
+      <img src="assets/architecture-draw-lifecycle.png" width="100%" alt="Draw lifecycle: 15-step sequence from POST /draws through Ed25519 mandate verification, SELECT FOR UPDATE row lock, AHP underwriting, atomic reservation, and SHA-256 audit hash append" />
+    </td>
+    <td align="center" width="50%">
+      <strong>Repayment Lifecycle — Automated Mandate Debit</strong><br/><br/>
+      <img src="assets/architecture-repayment.png" width="100%" alt="Repayment lifecycle: worker polls due schedules, executes mandate debit pull against simulated bank adapter, triggers asymmetric EMA limit update on success or FROZEN state transition on failure" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <strong>Authority State Machine — NORMAL → FROZEN</strong><br/><br/>
+      <img src="assets/architecture-authority-state.png" width="100%" alt="Authority state machine: NORMAL to RESTRICTED on anomaly, RESTRICTED to FROZEN on repayment failure, FROZEN to HUMAN_REVIEW on escalation, recovery only through principal-reviewed evidence" />
+    </td>
+    <td align="center" width="50%">
+      <strong>Evidence Model — Entity-Relationship Diagram</strong><br/><br/>
+      <img src="assets/architecture-er.png" width="100%" alt="Entity relationship model: Principal owns Agent, Agent signs Mandate, Mandate assigns CreditAccount, CreditAccount initiates DrawRequest, DrawRequest reserves via DrawReservation, settled by RepaymentSchedule, all events append to SHA-256 AuditEvent chain" />
+    </td>
+  </tr>
+</table>
 
 ### Core Architecture Principles Table
 
 | Architectural Dimension | Mechanism & Implementation | Security & Reliability Guarantee |
 |:---|:---|:---|
 | **Cryptographic Identity** | Ed25519-signed Capability Mandates issued by accountable principals | Principal binding; prevents unauthorized agent impersonation |
-| **Multi-Factor Underwriting** | Analytic Hierarchy Process (AHP) 5-factor pairwise comparison matrix | Mathematical consistency ($CR = 0.0341 \le 0.10$) |
+| **Multi-Factor Underwriting** | Analytic Hierarchy Process (AHP) 4-factor pairwise comparison matrix | Mathematical consistency ($CR = 0.0341 \le 0.10$) |
 | **Limit Dynamics & EMA** | Bounded floor/ceiling interpolation with asymmetric trust score EMA | $\alpha_{\text{up}}=0.15, \alpha_{\text{down}}=0.65$; rapid penalty on default |
 | **Spend Isolation Gateway** | 15-step Transaction Gateway with PostgreSQL `SELECT FOR UPDATE` | Pessimistic row locking; prevents race conditions & double-spends |
 | **Automated Repayment** | Scheduled mandate debit pulls with bank adapter integration | Zero-latency state transition to `FROZEN` on debit failure |
@@ -145,7 +185,7 @@ TrustLine's risk decision engine implements mathematical formulations to compute
 
 ### 1. Analytic Hierarchy Process (AHP) Pairwise Consistency Ratio
 $$CR = \frac{CI}{RI} \le 0.10 \quad \text{where} \quad CI = \frac{\lambda_{\max} - n}{n - 1}$$
-For our 5-factor matrix, $n = 5, RI = 1.12$, yielding a verified consistency ratio of $CR = 0.0341$.
+For our 4-factor matrix, $n = 4, RI = 0.90$, yielding a verified consistency ratio of $CR = 0.0341$.
 
 ### 2. Bounded Credit Limit Interpolation
 $$L_{\text{target}} = L_{\text{min}} + S \cdot (L_{\text{max}} - L_{\text{min}})$$
@@ -242,11 +282,15 @@ TrustLine/
 │   ├── references.md         # Industry Citations (Google AP2, Visa Trusted Agent)
 │   ├── risk-methodology.md   # AHP Eigenvector & Limit Formula Derivations
 │   ├── scope-boundaries.md   # Implementation Scope Classification
-│   └── threat-model.md       # Security Matrix & Threat Mitigations
+│   ├── threat-model.md       # Security Matrix & Threat Mitigations
+│   ├── next-plan.md          # Roadmap & Next Plan of Action
+│   ├── release-handoff.md    # Submission Packaging & Deployment Checklist
+│   └── screenshots/          # Responsive Product Screenshots
 ├── scripts/                  # Automated Test & Verification Tools
 │   ├── seed_demo.py          # Deterministic Demo Database Seeder
 │   ├── demo_smoke.py         # End-to-End Smoke Test Suite
-│   └── demo_concurrency.py   # Parallel Thread Race Condition Proof
+│   ├── demo_concurrency.py   # Parallel Thread Race Condition Proof
+│   └── demo_reset.py         # Demo State Reset & Database Reseed
 ├── docker-compose.yml        # Multi-Container Production Docker Stack
 ├── Makefile                  # Automated Shorthands & Tasks
 └── README.md                 # Project Overview & Quickstart Guide
@@ -319,6 +363,7 @@ TrustLine/
 | **Industry References** | [references.md](docs/references.md) | Industry citations (Google AP2, Visa Trusted Agent) |
 | **Execution Status** | [execution-status.md](docs/execution-status.md) | Test coverage and readiness matrix |
 | **Next Plan of Action** | [next-plan.md](docs/next-plan.md) | Roadmap for upcoming features |
+| **Release Handoff** | [release-handoff.md](docs/release-handoff.md) | Submission packaging, deployment, and handoff checklist |
 
 ---
 
