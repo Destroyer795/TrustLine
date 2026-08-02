@@ -41,6 +41,10 @@ services:
       - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+      - LYZR_API_URL=${LYZR_API_URL:-https://agent-prod.studio.lyzr.ai/v3/inference/chat/}
+      - LYZR_AGENT_ID=${LYZR_AGENT_ID:-}
+      - LYZR_API_KEY=${LYZR_API_KEY:-}
+      - LYZR_TIMEOUT_SECONDS=${LYZR_TIMEOUT_SECONDS:-8}
     ports:
       - "8000:8000"
     volumes:
